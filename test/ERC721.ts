@@ -7,6 +7,8 @@ import { Contract } from "ethers";
 import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
 
 const baseUri = "ipfs://";
+const tokenName = "Token";
+const symbol = "TKN";
 
 describe("ERC721", () => {
   let erc721: Contract;
@@ -22,57 +24,50 @@ describe("ERC721", () => {
 
     erc721 = await upgrades.deployProxy(ERC721, [
       owner.address,
-      "Token",
-      "TKN",
+      tokenName,
+      symbol,
       baseUri,
     ]);
     await erc721.deployed();
   });
 
-  describe("1. Setter", () => {
-    describe("1.1. Owner", () => {
-      it("1.1.1. Should successfully set and retrieve baseURI", async () => {
-        const newURI = "ipfs://testuri";
-        await erc721.setBaseURI(newURI);
-        await expect(await erc721.baseURI()).to.equal(newURI);
-      });
+  describe("1. Initialize", () => {
+    it("1.1. Should assign state successfully", async () => {
+      expect(await erc721.owner()).to.be.equal(owner.address);
+      expect(await erc721.baseURI()).to.be.equal(baseUri);
+      expect(await erc721.lastId()).to.be.equal(0);
+    });
+  });
+  describe("2. Set Base URI", () => {
+    const newURI = "ipfs://testuri";
+
+    it("2.1. Should be fail when caller is not owner or controller", async () => {
+      await expect(
+        erc721.connect(users[0]).setBaseURI(newURI)
+      ).to.be.revertedWith("Ownable: Caller is not owner/controller");
     });
 
-    describe("1.2. Non-owner", async () => {
-      it("1.2.1. Should not be able to set new base URI", async () => {
-        await expect(
-          erc721.connect(users[0]).setBaseURI("ipfs://123")
-        ).to.be.revertedWith("Ownable: Caller is not owner/controller");
-      });
+    it("2.2. Should successfully set and retrieve baseURI", async () => {
+      await expect(erc721.setBaseURI(newURI))
+        .to.emit(erc721, "SetBaseURI")
+        .withArgs(baseUri, newURI);
+      expect(await erc721.baseURI()).to.equal(newURI);
+    });
+  });
+
+  describe.only("3. Get token URI", async () => {
+    it("Should be fail when token ID is invalid", async () => {
+      const lastId = await erc721.lastId();
+      await expect(erc721.tokenURI(lastId)).to.be.revertedWith(
+        "ERC721Metadata: URI query for nonexistent token."
+      );
     });
 
-    describe("1.3. Emits", async () => {
-      it("1.3.1. SetBaseURI event", async () => {
-        const oldBaseURI = await erc721.baseURI();
-        const newBaseURI = "ipfs://456";
-        await expect(erc721.setBaseURI(newBaseURI))
-          .to.emit(erc721, "SetBaseURI")
-          .withArgs(oldBaseURI, newBaseURI);
-      });
-
-      it("1.3.2. Minted event", async () => {
-        const lastId = await erc721.lastId();
-        await expect(erc721.mint(users[0].address))
-          .to.emit(erc721, "Minted")
-          .withArgs(users[0].address, lastId.add(1));
-      });
-
-      it("1.3.3. Transfered event", async () => {
-        await erc721.mint(users[0].address);
-        const lastId = await erc721.lastId();
-        await expect(
-          erc721
-            .connect(users[0])
-            .transfer(users[0].address, users[1].address, lastId)
-        )
-          .to.emit(erc721, "Transfered")
-          .withArgs(users[0].address, users[1].address, lastId);
-      });
+    it("Should get token URI successfully when token ID is valid", async () => {
+      await erc721.connect(owner).mint(users[0].address);
+      const lastId = await erc721.lastId();
+      const tokenURI = await erc721.tokenURI(lastId);
+      console.log("Token URI: ", tokenURI);
     });
   });
 
@@ -83,26 +78,17 @@ describe("ERC721", () => {
       ).to.be.revertedWith("Ownable: Caller is not owner/controller");
     });
 
-    describe("2.2. Upon successfully mint to users[0]", async () => {
-      it("2.2.1. Should emit Minted event", async () => {
-        const lastId = await erc721.lastId();
-        await expect(await erc721.connect(owner).mint(users[0].address))
-          .to.emit(erc721, "Minted")
-          .withArgs(users[0].address, lastId.add(1));
-      });
+    it("2.2. Should mint successfully", async () => {
+      const lastId = await erc721.lastId();
 
-      it("2.2.2. Should be owned by users[0]", async () => {
-        await erc721.connect(owner).mint(users[0].address);
-        const lastId = await erc721.lastId();
-
-        await expect(await erc721.ownerOf(lastId)).to.be.equal(
-          users[0].address
-        );
-      });
+      await expect(erc721.connect(owner).mint(users[0].address))
+        .to.emit(erc721, "Minted")
+        .withArgs(users[0].address, lastId.add(1));
+      expect(await erc721.ownerOf(lastId.add(1))).to.be.equal(users[0].address);
     });
   });
 
-  describe.only("3. Transfer", async () => {
+  describe("3. Transfer", async () => {
     beforeEach(async () => {
       await erc721.connect(owner).mint(users[0].address);
     });
@@ -135,7 +121,7 @@ describe("ERC721", () => {
       });
     });
 
-    describe("3.2. Should transfer successfully when ", async () => {
+    describe("3.2. Upon transfer successfully ", async () => {
       it("3.2.1. Should emit Transfered event", async () => {
         const lastId = await erc721.lastId();
         await expect(
@@ -155,6 +141,58 @@ describe("ERC721", () => {
         expect(
           await erc721.getHistoryTransfer(users[0].address, users[1].address)
         ).to.be.equal(lastId);
+      });
+    });
+  });
+
+  describe("4. Authorizable", async () => {
+    describe("4.1. Set Controller", async () => {
+      it("4.1.1. Should be fail when caller is not owner or controller", async () => {
+        await expect(
+          erc721.connect(users[0]).setController(users[0].address, true)
+        ).to.be.revertedWith("Ownable: Caller is not owner/controller");
+      });
+
+      it("4.1.2. Should be fail when address that want to set is zero address", async () => {
+        await expect(
+          erc721.connect(owner).setController(ZERO_ADDRESS, true)
+        ).to.be.revertedWith("Ownable: Invalid address");
+      });
+
+      it("4.1.3. Should be fail when set an address that has already been a controller", async () => {
+        await erc721.connect(owner).setController(users[0].address, true);
+        await expect(
+          erc721.connect(owner).setController(users[0].address, true)
+        ).to.be.revertedWith("Duplicate value");
+      });
+
+      it("4.1.4. Should be fail when set an address that has not already been a controller", async () => {
+        await expect(
+          erc721.connect(owner).setController(users[0].address, false)
+        ).to.be.revertedWith("Duplicate value");
+      });
+
+      it("4.1.5. Should set a controller successfully and emit SetController event", async () => {
+        await expect(
+          erc721.connect(owner).setController(users[0].address, true)
+        )
+          .to.emit(erc721, "SetController")
+          .withArgs(users[0].address, true);
+        expect(await erc721.isOwnerOrController(users[0].address)).to.be.equal(
+          true
+        );
+      });
+
+      it("4.1.6. Should remove a controller successfully and emit SetController event", async () => {
+        await erc721.connect(owner).setController(users[0].address, true);
+        await expect(
+          erc721.connect(owner).setController(users[0].address, false)
+        )
+          .to.emit(erc721, "SetController")
+          .withArgs(users[0].address, false);
+        expect(await erc721.isOwnerOrController(users[0].address)).to.be.equal(
+          false
+        );
       });
     });
   });

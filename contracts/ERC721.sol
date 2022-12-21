@@ -12,22 +12,28 @@ import "./Authorizable.sol";
 
 contract ERC721 is ERC721Upgradeable, Authorizable {
     using StringsUpgradeable for uint256;
+
+    /**
+     * @notice baseURI string is base URI of token
+     */
     string public baseURI;
 
     using CountersUpgradeable for CountersUpgradeable.Counter;
     CountersUpgradeable.Counter public lastId;
 
     /**
-     * @dev Store token URI by token ID
+     * @notice Mapping token ID and URI to store token URIs
      */
     mapping(uint256 => string) public _tokenURIs;
 
     /**
-     * @dev Store history of transfer token: sender, receiver, tokenId
+     * @notice Mapping sender address to recipient address to token ID to store history transfer
      */
     mapping(address => mapping(address => uint256)) private history;
 
-    // @dev Emit event when contract is deployed
+    /**
+     * @notice Emit event when contract is deployed
+     */
     event Deployed(
         address indexed owner,
         string tokenName,
@@ -35,25 +41,46 @@ contract ERC721 is ERC721Upgradeable, Authorizable {
         string baseUri
     );
 
-    // @dev Emit event when updating metadata of a token
+    /**
+     * @notice Emit event when updating metadata of a token
+     */
     event SetBaseURI(string indexed oldUri, string indexed newUri);
 
-    // @dev Emit event when transfering token
+    /**
+     * @notice Emit event when set token URI
+     */
+    event SetTokenURI(
+        uint256 indexed tokenId,
+        string oldTokenURI,
+        string newTokenURI
+    );
+
+    /**
+     * @notice Emit event when transfering token
+     */
     event Transfered(
         address indexed from,
         address indexed to,
         uint256 indexed tokenId
     );
 
-    // @dev Emit event when minting a token to an address
+    /**
+     * @notice Emit event when minting a token to an address
+     */
     event Minted(address indexed to, uint256 indexed tokenId);
 
     /**
-     * @notice Setting states initial when deploying contract and only called once
-     * @param _owner Contract owner address
-     * @param _tokenName Token name
-     * @param _symbol Token symbol
-     * @param _baseURI Base URI metadata
+     *  @notice Update new base URI
+     *
+     *  @dev    Only owner or controller can call this function
+     *
+     *          Name        Meaning
+     *  @param  _owner      Contract owner address
+     *  @param  _tokenName  Token name
+     *  @param  _symbol     Token symbol
+     *  @param  _baseURI    Base URI metadata
+     *
+     *  Emit event {Deployed}
      */
     function initialize(
         address _owner,
@@ -71,9 +98,14 @@ contract ERC721 is ERC721Upgradeable, Authorizable {
     }
 
     /**
-     * @dev Update new base URI
-     * @notice Only owner can call this function
-     * @param _newURI New base URI metadata
+     *  @notice Update new base URI
+     *
+     *  @dev    Only owner or controller can call this function
+     *
+     *          Name        Meaning
+     *  @param  _newURI     New URI that want to set
+     *
+     *  Emit event {SetBaseURI}
      */
     function setBaseURI(string memory _newURI) external onlyOwnerOrController {
         string memory oldURI = baseURI;
@@ -82,9 +114,41 @@ contract ERC721 is ERC721Upgradeable, Authorizable {
     }
 
     /**
-     * @dev Mint a token to an address
-     * @notice Only owner can call this function
-     * @param _to Address that want to mint a token
+     *  @notice Set token URI by token ID
+     *
+     *  @dev    Only owner or controller can call this function
+     *
+     *          Name        Meaning
+     *  @param  _tokenId    Token ID that want to set
+     *  @param  _tokenURI   New token URI that want to set
+     *
+     *  Emit event {SetTokenURI}
+     */
+    function setTokenURI(
+        uint256 _tokenId,
+        string memory _tokenURI
+    ) external onlyOwnerOrController {
+        require(
+            _exists(_tokenId),
+            "ERC721Metadata: URI set of nonexistent token"
+        );
+        string memory oldTokenURI = _tokenURIs[_tokenId];
+        _tokenURIs[_tokenId] = _tokenURI;
+        emit SetTokenURI(_tokenId, oldTokenURI, _tokenURI);
+    }
+
+    /**
+     *  @notice Mint a token to an address
+     *
+     *  @dev    Only owner or controller can call this function
+     *
+     *          Name        Meaning
+     *  @param  _to         Address that want to mint token\
+     *
+     *                      Type        Meaning
+     *  @return tokenId     uint256     New token ID
+     *
+     *  Emit event {Minted}
      */
     function mint(
         address _to
@@ -96,9 +160,15 @@ contract ERC721 is ERC721Upgradeable, Authorizable {
     }
 
     /**
-     * @dev Get base64 string from token ID to represent the token metadata
-     * @param _tokenId Token ID
-     * @return string base64
+     *  @notice Get base64 string from token ID to represent the token metadata
+     *
+     *  @dev    Anyone can call this function
+     *
+     *          Name        Meaning
+     *  @param  _tokenId    Token ID
+     *
+     *          Type        Meaning
+     *  @return string      Token URI
      */
     function tokenURI(
         uint256 _tokenId
@@ -115,6 +185,18 @@ contract ERC721 is ERC721Upgradeable, Authorizable {
                 : ".json";
     }
 
+    /**
+     *  @notice Transfer token from an address to another address
+     *
+     *  @dev    Anyone can call this function
+     *
+     *          Name        Meaning
+     *  @param  _from       Sender address
+     *  @param  _to         Recipient address
+     *  @param  _tokenId    Token ID
+     *
+     *  Emit event {Transfered}
+     */
     function transfer(address _from, address _to, uint256 _tokenId) external {
         require(_from != address(0) && _to != address(0), "Invalid address");
         safeTransferFrom(_from, _to, _tokenId);
@@ -122,6 +204,18 @@ contract ERC721 is ERC721Upgradeable, Authorizable {
         emit Transfered(_from, _to, _tokenId);
     }
 
+    /**
+     *  @notice Get history transfer of sender and recipient addresses
+     *
+     *  @dev    Anyone can call this function
+     *
+     *          Name        Meaning
+     *  @param  _from       Sender address
+     *  @param  _to         Recipient address
+     *
+     *          Type        Meaning
+     *  @return uint256     Token ID
+     */
     function getHistoryTransfer(
         address _from,
         address _to

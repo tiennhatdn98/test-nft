@@ -5,9 +5,8 @@ import "@openzeppelin/hardhat-upgrades";
 import dotenv from "dotenv";
 dotenv.config();
 
-const TESTNET_RPC = process.env.TESTNET_RPC || "1".repeat(32);
-const MAINNET_RPC = process.env.MAINNET_RPC || "1".repeat(32);
-const PRIVATE_KEY = process.env.PRIVATE_KEY || "1".repeat(64);
+const BINANCE_MAINNET_RPC = process.env.MAINNET_RPC || "1".repeat(32);
+const SYSTEM_PRIVATE_KEY = process.env.SYSTEM_PRIVATE_KEY || "1".repeat(64);
 
 const config: HardhatUserConfig = {
   solidity: {
@@ -20,17 +19,21 @@ const config: HardhatUserConfig = {
     },
   },
   networks: {
-    testnet: {
-      url: TESTNET_RPC,
-      accounts: [PRIVATE_KEY],
+    // Mainnet
+    binance: {
+      url: BINANCE_MAINNET_RPC,
+      accounts: [SYSTEM_PRIVATE_KEY],
     },
-    mainnet: {
-      url: MAINNET_RPC,
-      accounts: [PRIVATE_KEY],
+    // Testnet
+    binance_testnet: {
+      url: process.env.BINANCE_TESTNET_RPC,
+      accounts: [SYSTEM_PRIVATE_KEY],
     },
   },
   etherscan: {
-    apiKey: process.env.ETHERSCAN_API_KEY ?? "",
+    apiKey: {
+      bscTestnet: process.env.BINANCE_API_KEY || "",
+    },
   },
 };
 
