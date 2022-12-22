@@ -24,12 +24,12 @@ contract ERC721 is ERC721Upgradeable, Authorizable {
     /**
      * @notice Mapping token ID and URI to store token URIs
      */
-    mapping(uint256 => string) public _tokenURIs;
+    mapping(uint256 => string) private _tokenURIs;
 
     /**
      * @notice Mapping sender address to recipient address to token ID to store history transfer
      */
-    mapping(address => mapping(address => uint256)) private history;
+    mapping(address => mapping(address => uint256)) private _history;
 
     /**
      * @notice Emit event when contract is deployed
@@ -78,7 +78,7 @@ contract ERC721 is ERC721Upgradeable, Authorizable {
      *  @param  _owner      Contract owner address
      *  @param  _tokenName  Token name
      *  @param  _symbol     Token symbol
-     *  @param  _baseURI    Base URI metadata
+     *  @param  _baseUri    Base URI metadata
      *
      *  Emit event {Deployed}
      */
@@ -86,15 +86,15 @@ contract ERC721 is ERC721Upgradeable, Authorizable {
         address _owner,
         string memory _tokenName,
         string memory _symbol,
-        string memory _baseURI
+        string memory _baseUri
     ) public initializer {
         __ERC721_init(_tokenName, _symbol);
         __Ownable_init();
         transferOwnership(_owner);
 
-        baseURI = _baseURI;
+        baseURI = _baseUri;
 
-        emit Deployed(_owner, _tokenName, _symbol, _baseURI);
+        emit Deployed(_owner, _tokenName, _symbol, _baseUri);
     }
 
     /**
@@ -138,6 +138,27 @@ contract ERC721 is ERC721Upgradeable, Authorizable {
     }
 
     /**
+     *  @notice Get token URI by token ID
+     *
+     *  @dev    Only owner or controller can call this function
+     *
+     *          Name        Meaning
+     *  @param  _tokenId    Token ID that want to set
+     *
+     *          Type        Meaning
+     *  @return string      Token URI
+     */
+    function tokenURI(
+        uint256 _tokenId
+    ) public view virtual override returns (string memory) {
+        require(
+            _exists(_tokenId),
+            "ERC721Metadata: URI query for nonexistent token."
+        );
+        return _tokenURIs[_tokenId];
+    }
+
+    /**
      *  @notice Mint a token to an address
      *
      *  @dev    Only owner or controller can call this function
@@ -160,32 +181,6 @@ contract ERC721 is ERC721Upgradeable, Authorizable {
     }
 
     /**
-     *  @notice Get base64 string from token ID to represent the token metadata
-     *
-     *  @dev    Anyone can call this function
-     *
-     *          Name        Meaning
-     *  @param  _tokenId    Token ID
-     *
-     *          Type        Meaning
-     *  @return string      Token URI
-     */
-    function tokenURI(
-        uint256 _tokenId
-    ) public view virtual override returns (string memory) {
-        require(
-            _exists(_tokenId),
-            "ERC721Metadata: URI query for nonexistent token."
-        );
-        return
-            bytes(baseURI).length > 0
-                ? string(
-                    abi.encodePacked(baseURI, _tokenId.toString(), ".json")
-                )
-                : ".json";
-    }
-
-    /**
      *  @notice Transfer token from an address to another address
      *
      *  @dev    Anyone can call this function
@@ -200,7 +195,7 @@ contract ERC721 is ERC721Upgradeable, Authorizable {
     function transfer(address _from, address _to, uint256 _tokenId) external {
         require(_from != address(0) && _to != address(0), "Invalid address");
         safeTransferFrom(_from, _to, _tokenId);
-        history[_from][_to] = _tokenId;
+        _history[_from][_to] = _tokenId;
         emit Transfered(_from, _to, _tokenId);
     }
 
@@ -221,6 +216,6 @@ contract ERC721 is ERC721Upgradeable, Authorizable {
         address _to
     ) external view returns (uint256) {
         require(_from != address(0) && _to != address(0), "Invalid address");
-        return history[_from][_to];
+        return _history[_from][_to];
     }
 }

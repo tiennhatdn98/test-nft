@@ -2,8 +2,9 @@
 pragma solidity 0.8.17;
 
 import "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
+import "./interfaces/IAuthorizable.sol";
 
-abstract contract Authorizable is OwnableUpgradeable {
+abstract contract Authorizable is IAuthorizable, OwnableUpgradeable {
     /**
      * @notice Mapping address and boolean to store controller right of an address
      */
@@ -30,22 +31,12 @@ abstract contract Authorizable is OwnableUpgradeable {
      */
     function setController(
         address _account,
-        bool isAllow
+        bool _isAllow
     ) external onlyOwnerOrController {
         require(_account != address(0), "Ownable: Invalid address");
-        require(_controller[_account] != isAllow, "Duplicate value");
-        _controller[_account] = isAllow;
-        emit SetController(_account, isAllow);
-    }
-
-    /**
-     * @notice Get owner of contract
-     *
-     *          Type        Meaning
-     *  @return address     Contract owner address
-     */
-    function getOwner() external view returns (address) {
-        return owner();
+        require(_controller[_account] != _isAllow, "Ownable: Duplicate value");
+        _controller[_account] = _isAllow;
+        emit SetController(_account, _isAllow);
     }
 
     /**
@@ -60,7 +51,7 @@ abstract contract Authorizable is OwnableUpgradeable {
     function isOwnerOrController(
         address _account
     ) external view returns (bool) {
-        require(_account != address(0), "Invalid address");
+        require(_account != address(0), "Ownable: Invalid address");
         return _controller[_account] || _account == owner();
     }
 }
