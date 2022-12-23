@@ -35,18 +35,22 @@ describe("ERC721 Integration", () => {
   describe("1. Mint token => Transfer token => Store history", () => {
     it("1.1. Should be successfull", async () => {
       await erc721.connect(owner).mint(users[0].address);
-      const tokenId = await erc721.lastId();
+      const tokenId = await erc721.lastTokenId();
       await erc721.connect(owner).setTokenURI(tokenId, tokenURI);
-      await erc721
-        .connect(users[0])
-        .transfer(users[0].address, users[1].address, tokenId);
+      await erc721.connect(users[0]).transfer(users[1].address, tokenId);
       expect(await erc721.ownerOf(tokenId)).to.be.equal(users[1].address);
       expect(await erc721.tokenURI(tokenId)).to.be.equal(tokenURI);
       expect(await erc721.balanceOf(users[0].address)).to.be.equal(0);
       expect(await erc721.balanceOf(users[1].address)).to.be.equal(1);
-      expect(
-        await erc721.getHistoryTransfer(users[0].address, users[1].address)
-      ).to.be.equal(tokenId);
+
+      const historyId = await erc721.lastHistoryId();
+      const history = await erc721.getHistoryTransfer(historyId);
+
+      expect(history.id).to.be.equal(historyId);
+      expect(history.tokenId).to.be.equal(tokenId);
+      expect(history.sender).to.be.equal(users[0].address);
+      expect(history.recipient).to.be.equal(users[1].address);
+      expect(await erc721.transfered(tokenId)).to.be.equal(true);
     });
   });
 });

@@ -1,16 +1,13 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.17;
 
-import "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
-import "@openzeppelin/contracts-upgradeable/token/ERC721/ERC721Upgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/token/ERC721/extensions/ERC721EnumerableUpgradeable.sol";
-import "@openzeppelin/contracts-upgradeable/token/common/ERC2981Upgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/utils/StringsUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/utils/CountersUpgradeable.sol";
 import "./interfaces/IERC721.sol";
 import "./Authorizable.sol";
 
-contract ERC721 is ERC721Upgradeable, Authorizable {
+contract ERC721 is ERC721EnumerableUpgradeable, Authorizable {
     using StringsUpgradeable for uint256;
 
     /**
@@ -19,7 +16,14 @@ contract ERC721 is ERC721Upgradeable, Authorizable {
     string public baseURI;
 
     using CountersUpgradeable for CountersUpgradeable.Counter;
-    CountersUpgradeable.Counter public lastId;
+
+    CountersUpgradeable.Counter public lastTokenId;
+    CountersUpgradeable.Counter public lastHistoryId;
+
+    /**
+     * @notice Mapping history ID and URI to store history transfer
+     */
+    mapping(uint256 => History) private _history;
 
     /**
      * @notice Mapping token ID and URI to store token URIs
@@ -27,9 +31,14 @@ contract ERC721 is ERC721Upgradeable, Authorizable {
     mapping(uint256 => string) private _tokenURIs;
 
     /**
-     * @notice Mapping sender address to recipient address to token ID to store history transfer
+     * @notice Mapping token ID and boolean to store token is transfered or not
      */
-    mapping(address => mapping(address => uint256)) private _history;
+    mapping(uint256 => bool) public transfered;
+
+    /**
+     * @dev Store merkle tree from token ID
+     */
+    // mapping(uint256 => bytes32) public merkleRoots;
 
     /**
      * @notice Emit event when contract is deployed
@@ -59,15 +68,11 @@ contract ERC721 is ERC721Upgradeable, Authorizable {
      * @notice Emit event when transfering token
      */
     event Transfered(
-        address indexed from,
-        address indexed to,
+        uint256 indexed historyId,
+        address from,
+        address to,
         uint256 indexed tokenId
     );
-
-    /**
-     * @notice Emit event when minting a token to an address
-     */
-    event Minted(address indexed to, uint256 indexed tokenId);
 
     /**
      *  @notice Update new base URI
@@ -108,6 +113,11 @@ contract ERC721 is ERC721Upgradeable, Authorizable {
      *  Emit event {SetBaseURI}
      */
     function setBaseURI(string memory _newURI) external onlyOwnerOrController {
+        require(
+            keccak256(abi.encodePacked((_newURI))) !=
+                keccak256(abi.encodePacked((baseURI))),
+            "Duplicate base URI"
+        );
         string memory oldURI = baseURI;
         baseURI = _newURI;
         emit SetBaseURI(oldURI, _newURI);
@@ -132,6 +142,7 @@ contract ERC721 is ERC721Upgradeable, Authorizable {
             _exists(_tokenId),
             "ERC721Metadata: URI set of nonexistent token"
         );
+        require(!transfered[_tokenId], "Token is transfered");
         string memory oldTokenURI = _tokenURIs[_tokenId];
         _tokenURIs[_tokenId] = _tokenURI;
         emit SetTokenURI(_tokenId, oldTokenURI, _tokenURI);
@@ -169,15 +180,14 @@ contract ERC721 is ERC721Upgradeable, Authorizable {
      *                      Type        Meaning
      *  @return tokenId     uint256     New token ID
      *
-     *  Emit event {Minted}
+     *  Emit event {Transfer(address(0), _to, tokenId)}
      */
     function mint(
         address _to
     ) external onlyOwnerOrController returns (uint256 tokenId) {
-        lastId.increment();
-        _safeMint(_to, lastId.current());
-        tokenId = lastId.current();
-        emit Minted(_to, tokenId);
+        lastTokenId.increment();
+        _safeMint(_to, lastTokenId.current());
+        tokenId = lastTokenId.current();
     }
 
     /**
@@ -185,18 +195,24 @@ contract ERC721 is ERC721Upgradeable, Authorizable {
      *
      *  @dev    Anyone can call this function
      *
-     *          Name        Meaning
-     *  @param  _from       Sender address
-     *  @param  _to         Recipient address
-     *  @param  _tokenId    Token ID
+     *          Name            Meaning
+     *  @param  _to             Recipient address
+     *  @param  _tokenId        Token ID
      *
      *  Emit event {Transfered}
      */
-    function transfer(address _from, address _to, uint256 _tokenId) external {
-        require(_from != address(0) && _to != address(0), "Invalid address");
-        safeTransferFrom(_from, _to, _tokenId);
-        _history[_from][_to] = _tokenId;
-        emit Transfered(_from, _to, _tokenId);
+    function transfer(address _to, uint256 _tokenId) external {
+        require(_to != address(0), "Invalid address");
+        safeTransferFrom(_msgSender(), _to, _tokenId);
+        lastHistoryId.increment();
+        transfered[_tokenId] = true;
+        _history[lastHistoryId.current()] = History(
+            lastHistoryId.current(),
+            _tokenId,
+            _msgSender(),
+            _to
+        );
+        emit Transfered(lastHistoryId.current(), _msgSender(), _to, _tokenId);
     }
 
     /**
@@ -205,17 +221,18 @@ contract ERC721 is ERC721Upgradeable, Authorizable {
      *  @dev    Anyone can call this function
      *
      *          Name        Meaning
-     *  @param  _from       Sender address
-     *  @param  _to         Recipient address
+     *  @param  _historyId  History transfer ID
      *
      *          Type        Meaning
-     *  @return uint256     Token ID
+     *  @return History     History transfer detail
      */
     function getHistoryTransfer(
-        address _from,
-        address _to
-    ) external view returns (uint256) {
-        require(_from != address(0) && _to != address(0), "Invalid address");
-        return _history[_from][_to];
+        uint256 _historyId
+    ) external view returns (History memory) {
+        require(
+            _historyId > 0 && _historyId <= lastHistoryId.current(),
+            "Invalid history ID"
+        );
+        return _history[_historyId];
     }
 }
