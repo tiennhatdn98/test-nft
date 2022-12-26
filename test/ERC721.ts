@@ -9,40 +9,48 @@ const baseURI = "ipfs://";
 const tokenName = "Token";
 const symbol = "TKN";
 const tokenURI = "ipfs://tokenURI";
+const signature =
+  "0x1c8aff950685c2ed4bc3174f3472287b56d9517b9c948127319a09a7a36deac8";
+const YEAR_TO_SECONDS = 31556926;
 
 describe("ERC721", () => {
   let erc721: Contract;
   let owner: SignerWithAddress;
-  let controller: SignerWithAddress;
+  let admin: SignerWithAddress;
+  let verifier: SignerWithAddress;
   let users: SignerWithAddress[];
 
   beforeEach(async () => {
     const ERC721 = await hre.ethers.getContractFactory("ERC721");
 
-    const [_owner, _controller, ..._users] = await hre.ethers.getSigners();
+    const [_owner, _admin, _verifier, ..._users] =
+      await hre.ethers.getSigners();
     owner = _owner;
+    admin = _admin;
+    verifier = _verifier;
     users = _users;
-    controller = _controller;
 
     erc721 = await upgrades.deployProxy(ERC721, [
       owner.address,
       tokenName,
       symbol,
       baseURI,
+      YEAR_TO_SECONDS,
     ]);
     await erc721.deployed();
 
-    await erc721.connect(owner).setController(controller.address, true);
+    await erc721.connect(owner).setAdmin(admin.address);
+    await erc721.connect(admin).setVerifier(verifier.address);
   });
 
-  describe("1. Initialize", () => {
+  describe.only("1. Initialize", () => {
     it("1.1. Should assign state successfully", async () => {
       expect(await erc721.owner()).to.be.equal(owner.address);
       expect(await erc721.baseURI()).to.be.equal(baseURI);
       expect(await erc721.name()).to.be.equal(tokenName);
       expect(await erc721.symbol()).to.be.equal(symbol);
-      expect(await erc721.lastTokenId()).to.be.equal(0);
-      expect(await erc721.lastHistoryId()).to.be.equal(0);
+      expect(await erc721.lastId()).to.be.equal(0);
+      expect(await erc721.expiration()).to.be.equal(YEAR_TO_SECONDS);
     });
   });
 
@@ -76,7 +84,7 @@ describe("ERC721", () => {
     });
   });
 
-  describe("3. Set Token URI", () => {
+  describe.only("3. Set Token URI", () => {
     it("3.1. Should be fail when caller is not owner or controller", async () => {
       const tokenId = await erc721.lastTokenId();
       await expect(
@@ -101,8 +109,9 @@ describe("ERC721", () => {
     });
 
     it("3.4. Should set successfully when caller is owner", async () => {
-      await erc721.connect(owner).mint(users[0].address);
-      const tokenId = await erc721.lastTokenId();
+      await erc721.connect(owner).mint(users[0].address, signature);
+
+      const tokenId = await erc721.lastId();
       await expect(erc721.connect(owner).setTokenURI(tokenId, tokenURI))
         .to.emit(erc721, "SetTokenURI")
         .withArgs(tokenId, "", tokenURI);
@@ -112,7 +121,7 @@ describe("ERC721", () => {
     it("3.5. Should set successfully when caller is controller", async () => {
       await erc721.connect(owner).mint(users[0].address);
       const tokenId = await erc721.lastTokenId();
-      await expect(erc721.connect(controller).setTokenURI(tokenId, tokenURI))
+      await expect(erc721.connect(owner).setTokenURI(tokenId, tokenURI))
         .to.emit(erc721, "SetTokenURI")
         .withArgs(tokenId, "", tokenURI);
       expect(await erc721.tokenURI(tokenId)).to.be.equal(tokenURI);

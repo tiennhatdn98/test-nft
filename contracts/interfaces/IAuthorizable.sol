@@ -2,7 +2,7 @@
 pragma solidity 0.8.17;
 
 interface IAuthorizable {
-    function setController(address _account, bool _isAllow) external;
+    function setAdmin(address _account) external;
 
-    function isOwnerOrController(address _account) external view returns (bool);
+    function setVerifier(address _account) external;
 }

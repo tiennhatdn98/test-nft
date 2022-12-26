@@ -6,52 +6,61 @@ import "./interfaces/IAuthorizable.sol";
 
 abstract contract Authorizable is IAuthorizable, OwnableUpgradeable {
     /**
-     * @notice Mapping address and boolean to store controller right of an address
+     * @notice admin address is Admin address
      */
-    mapping(address => bool) private _controller;
+    address admin;
 
     /**
-     * @notice Emit event when set an address to a controller
+     * @notice verifier address is Verifier address
      */
-    event SetController(address indexed account, bool isAllow);
+    address verifier;
 
-    modifier onlyOwnerOrController() {
+    /**
+     * @notice Emit event when set an address to a admin
+     */
+    event SetAdmin(address indexed oldAdmin, address indexed newAdmin);
+
+    /**
+     * @notice Emit event when set an address to a verififer
+     */
+    event SetVerifier(address indexed oldVerifier, address indexed newVerifier);
+
+    modifier onlyAdmin() {
+        require(_msgSender() == admin, "Ownable: Caller is not admin");
+        _;
+    }
+
+    modifier onlyOwnerOrAdmin() {
         require(
-            _msgSender() == owner() || _controller[_msgSender()],
-            "Ownable: Caller is not owner/controller"
+            _msgSender() == admin || _msgSender() == owner(),
+            "Ownable: Caller is not owner or admin"
         );
         _;
     }
 
     /**
-     * @notice Set address to controller
+     * @notice Set address to an admin
      * @param _account Account address that want to set
      *
-     * Emit event {SetController}
+     * Emit event {SetAdmin}
      */
-    function setController(
-        address _account,
-        bool _isAllow
-    ) external onlyOwnerOrController {
+    function setAdmin(address _account) external onlyOwner {
         require(_account != address(0), "Ownable: Invalid address");
-        require(_controller[_account] != _isAllow, "Ownable: Duplicate value");
-        _controller[_account] = _isAllow;
-        emit SetController(_account, _isAllow);
+        address oldAdmin = admin;
+        admin = _account;
+        emit SetAdmin(oldAdmin, admin);
     }
 
     /**
-     * @notice Check an address is an owner or a controller of contract
+     * @notice Set address to a verifier
+     * @param _account Account address that want to set
      *
-     *          Name        Meaning
-     * @param   _account    Account address that want to check
-     *
-     *          Type        Meaning
-     *  @return address     Contract owner address
+     * Emit event {SetVerifier}
      */
-    function isOwnerOrController(
-        address _account
-    ) external view returns (bool) {
+    function setVerifier(address _account) external onlyAdmin {
         require(_account != address(0), "Ownable: Invalid address");
-        return _controller[_account] || _account == owner();
+        address oldVerifier = verifier;
+        verifier = _account;
+        emit SetVerifier(oldVerifier, verifier);
     }
 }

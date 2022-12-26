@@ -8,19 +8,23 @@ interface IERC721 is IERC721MetadataUpgradeable {
 
     function setBaseURI(string memory baseUri) external;
 
-    function transfer(address _from, address _to, uint256 tokenId) external;
-
-    function getHistoryTransfer(
-        address _from,
-        address _to
-    ) external view returns (uint256);
+    function setExpiration(uint256 _expiration) external;
 
     function setTokenURI(uint256 tokenId, string memory _tokenURI) external;
-}
 
-struct History {
-    uint256 id;
-    uint256 tokenId;
-    address sender;
-    address recipient;
+    function setTokenStatus(uint256 _tokenId, bool status) external;
+
+    function withdraw(
+        address _paymentToken,
+        address _to,
+        uint256 _amount
+    ) external;
+
+    function claim(
+        address _paymentToken,
+        address _to,
+        uint256 _amount
+    ) external;
+
+    function transfer(address _from, address _to, uint256 tokenId) external;
 }

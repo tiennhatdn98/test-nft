@@ -2,7 +2,7 @@
   "manifestVersion": "3.2",
   "admin": {
     "address": "0xe7f1725E7734CE288F8367e1Bb143E90bb3F0512",
-    "txHash": "0x48c9ed8b869898d3fec5727d979f8ac39bb9bcdcf6d0a05ddf9acbd35b283b56"
+    "txHash": "0x6fcd7ade63228616589c167141d20163c8a42c9d9eec76e8a78bc461517f17ac"
   },
   "proxies": [
     {
@@ -13,11 +13,6 @@
     {
       "address": "0x9E545E3C0baAB3E08CdfD552C960A1050f373042",
       "txHash": "0x9953d36e4666896b52c74a7e9d892f834b97b3fb381c813e9c750daed1b69fd0",
-      "kind": "transparent"
-    },
-    {
-      "address": "0x2279B7A0a67DB372996a5FaB50D91eAA73d2eBe6",
-      "txHash": "0x7470f74f947f7d636cd9dba96dd94218ded141f6ce83e5a1adc0da79311bc0a1",
       "kind": "transparent"
     },
     {
@@ -196,11 +191,6 @@
       "kind": "transparent"
     },
     {
-      "address": "0x610178dA211FEF7D417bC0e6FeD39F05609AD788",
-      "txHash": "0x104b4f2b2d2d21de857fa382f24a899810bd95cb4b9a16377e49da26e667204a",
-      "kind": "transparent"
-    },
-    {
       "address": "0x9A9f2CCfdE556A7E9Ff0848998Aa4a0CFD8863AE",
       "txHash": "0x97389451f5500c1ce81ee1a14a1cab4574f34dcc4795ad5ee3fdf36258b78fd8",
       "kind": "transparent"
@@ -291,21 +281,6 @@
       "kind": "transparent"
     },
     {
-      "address": "0x9fE46736679d2D9a65F0992F2272dE9f3c7fa6e0",
-      "txHash": "0xaa24342099bb68284301f7712412484072275cbeda34396eeef58c03951e59e0",
-      "kind": "transparent"
-    },
-    {
-      "address": "0xDc64a140Aa3E981100a9becA4E685f962f0cF6C9",
-      "txHash": "0x403c3c9e06393db7819e2867efdc726d761220720c2da81da0cbef410cf0ba40",
-      "kind": "transparent"
-    },
-    {
-      "address": "0x0165878A594ca255338adfa4d48449f69242Eb8F",
-      "txHash": "0x20ef9554d35fc35b8278bc3795d8362e9ac2e0a7975e9afdc1bcc7f6a0a38b29",
-      "kind": "transparent"
-    },
-    {
       "address": "0x8A791620dd6260079BF849Dc5567aDC3F2FdC318",
       "txHash": "0xb849158f1cdbcce4485702487d01bd695f1c8bb3c53ac33f99ae35ae6e6ee797",
       "kind": "transparent"
@@ -313,11 +288,6 @@
     {
       "address": "0xA51c1fc2f0D1a1b8494Ed1FE312d7C3a78Ed91C0",
       "txHash": "0x8ba0a5c75ab9ee727949c5c5e5ad059175e186ec48131859344fda0e23382841",
-      "kind": "transparent"
-    },
-    {
-      "address": "0x9A676e781A523b5d0C0e43731313A708CB607508",
-      "txHash": "0x3f382ce5e77a4ef84c1e1424958291f42b56b6aca2ede92b9c692aa354b67695",
       "kind": "transparent"
     },
     {
@@ -479,12 +449,42 @@
       "address": "0xD5ac451B0c50B9476107823Af206eD814a2e2580",
       "txHash": "0x371f8784cf7a57d1d239194825f41359b9919c4191f6e4466702822018d6e58b",
       "kind": "transparent"
+    },
+    {
+      "address": "0x9fE46736679d2D9a65F0992F2272dE9f3c7fa6e0",
+      "txHash": "0x8799a0bec410d01fd4ea28317f5d86556a8193fe6bcdd856f41ea1b22643c9c6",
+      "kind": "transparent"
+    },
+    {
+      "address": "0xDc64a140Aa3E981100a9becA4E685f962f0cF6C9",
+      "txHash": "0xbbc18a1015595ad3a4bc238941e3ea622f1e8d321f5daf9ae8ef7db019cc27ea",
+      "kind": "transparent"
+    },
+    {
+      "address": "0x0165878A594ca255338adfa4d48449f69242Eb8F",
+      "txHash": "0x8822d999eb1af4d599928f93832abadaf000982f140c06a5e9bb164dd017a63e",
+      "kind": "transparent"
+    },
+    {
+      "address": "0x2279B7A0a67DB372996a5FaB50D91eAA73d2eBe6",
+      "txHash": "0x14edec2f4bf369f16795bb3973442fc1ba217637c0b299c3c2e60c4c449ebb7a",
+      "kind": "transparent"
+    },
+    {
+      "address": "0x610178dA211FEF7D417bC0e6FeD39F05609AD788",
+      "txHash": "0xe02df19b3b0e667d254e6dcf4ddb9a759741b6a3d4d73e4895415af965795a91",
+      "kind": "transparent"
+    },
+    {
+      "address": "0x9A676e781A523b5d0C0e43731313A708CB607508",
+      "txHash": "0x3f10e0ba2a1dd6c6d095387fb3b72bc3c5f49efe12b2ea7335fff28ca0ea6184",
+      "kind": "transparent"
     }
   ],
   "impls": {
-    "00afb1e4599957c7c4362dcbbd9607f24d73042cfb19158fbf54f8c8c784d236": {
+    "2b1ae11cb4a7765653969d5361e35fb5b85f607ffada5b1f6a3f2c25ac052987": {
       "address": "0x5FbDB2315678afecb367f032d93F642f64180aa3",
-      "txHash": "0xdfac8b853b6a9e39c4f0accbc009a7bd33213055c94eee4c3e0b36ac7e973f4f",
+      "txHash": "0x18aab4fce12d22f71009e956c890bd484b5d31e2961db6ce96ebbca72e7b027e",
       "layout": {
         "solcVersion": "0.8.17",
         "storage": [
@@ -578,49 +578,9 @@
             "src": "@openzeppelin/contracts-upgradeable/token/ERC721/ERC721Upgradeable.sol:514"
           },
           {
-            "label": "_ownedTokens",
-            "offset": 0,
-            "slot": "151",
-            "type": "t_mapping(t_address,t_mapping(t_uint256,t_uint256))",
-            "contract": "ERC721EnumerableUpgradeable",
-            "src": "@openzeppelin/contracts-upgradeable/token/ERC721/extensions/ERC721EnumerableUpgradeable.sol:22"
-          },
-          {
-            "label": "_ownedTokensIndex",
-            "offset": 0,
-            "slot": "152",
-            "type": "t_mapping(t_uint256,t_uint256)",
-            "contract": "ERC721EnumerableUpgradeable",
-            "src": "@openzeppelin/contracts-upgradeable/token/ERC721/extensions/ERC721EnumerableUpgradeable.sol:25"
-          },
-          {
-            "label": "_allTokens",
-            "offset": 0,
-            "slot": "153",
-            "type": "t_array(t_uint256)dyn_storage",
-            "contract": "ERC721EnumerableUpgradeable",
-            "src": "@openzeppelin/contracts-upgradeable/token/ERC721/extensions/ERC721EnumerableUpgradeable.sol:28"
-          },
-          {
-            "label": "_allTokensIndex",
-            "offset": 0,
-            "slot": "154",
-            "type": "t_mapping(t_uint256,t_uint256)",
-            "contract": "ERC721EnumerableUpgradeable",
-            "src": "@openzeppelin/contracts-upgradeable/token/ERC721/extensions/ERC721EnumerableUpgradeable.sol:31"
-          },
-          {
-            "label": "__gap",
-            "offset": 0,
-            "slot": "155",
-            "type": "t_array(t_uint256)46_storage",
-            "contract": "ERC721EnumerableUpgradeable",
-            "src": "@openzeppelin/contracts-upgradeable/token/ERC721/extensions/ERC721EnumerableUpgradeable.sol:171"
-          },
-          {
             "label": "_owner",
             "offset": 0,
-            "slot": "201",
+            "slot": "151",
             "type": "t_address",
             "contract": "OwnableUpgradeable",
             "src": "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol:22"
@@ -628,66 +588,82 @@
           {
             "label": "__gap",
             "offset": 0,
-            "slot": "202",
+            "slot": "152",
             "type": "t_array(t_uint256)49_storage",
             "contract": "OwnableUpgradeable",
             "src": "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol:94"
           },
           {
-            "label": "_controller",
+            "label": "admin",
             "offset": 0,
-            "slot": "251",
-            "type": "t_mapping(t_address,t_bool)",
+            "slot": "201",
+            "type": "t_address",
             "contract": "Authorizable",
-            "src": "contracts/Authorizable.sol:23"
+            "src": "contracts/Authorizable.sol:11"
+          },
+          {
+            "label": "verifier",
+            "offset": 0,
+            "slot": "202",
+            "type": "t_address",
+            "contract": "Authorizable",
+            "src": "contracts/Authorizable.sol:16"
           },
           {
             "label": "baseURI",
             "offset": 0,
-            "slot": "252",
+            "slot": "203",
             "type": "t_string_storage",
             "contract": "ERC721",
-            "src": "contracts/ERC721.sol:40"
+            "src": "contracts/ERC721.sol:18"
           },
           {
-            "label": "lastTokenId",
+            "label": "lastId",
             "offset": 0,
-            "slot": "253",
-            "type": "t_struct(Counter)2168_storage",
+            "slot": "204",
+            "type": "t_struct(Counter)2158_storage",
             "contract": "ERC721",
-            "src": "contracts/ERC721.sol:44"
+            "src": "contracts/ERC721.sol:22"
           },
           {
-            "label": "lastHistoryId",
+            "label": "expiration",
             "offset": 0,
-            "slot": "254",
-            "type": "t_struct(Counter)2168_storage",
+            "slot": "205",
+            "type": "t_uint256",
             "contract": "ERC721",
-            "src": "contracts/ERC721.sol:45"
+            "src": "contracts/ERC721.sol:27"
           },
           {
-            "label": "_history",
+            "label": "expirationOf",
             "offset": 0,
-            "slot": "255",
-            "type": "t_mapping(t_uint256,t_struct(History)4498_storage)",
+            "slot": "206",
+            "type": "t_mapping(t_uint256,t_uint256)",
             "contract": "ERC721",
-            "src": "contracts/ERC721.sol:50"
+            "src": "contracts/ERC721.sol:32"
+          },
+          {
+            "label": "statusOf",
+            "offset": 0,
+            "slot": "207",
+            "type": "t_mapping(t_uint256,t_bool)",
+            "contract": "ERC721",
+            "src": "contracts/ERC721.sol:37"
+          },
+          {
+            "label": "ownerBalanceOf",
+            "offset": 0,
+            "slot": "208",
+            "type": "t_mapping(t_address,t_mapping(t_address,t_uint256))",
+            "contract": "ERC721",
+            "src": "contracts/ERC721.sol:42"
           },
           {
             "label": "_tokenURIs",
             "offset": 0,
-            "slot": "256",
+            "slot": "209",
             "type": "t_mapping(t_uint256,t_string_storage)",
             "contract": "ERC721",
-            "src": "contracts/ERC721.sol:55"
-          },
-          {
-            "label": "transfered",
-            "offset": 0,
-            "slot": "257",
-            "type": "t_mapping(t_uint256,t_bool)",
-            "contract": "ERC721",
-            "src": "contracts/ERC721.sol:60"
+            "src": "contracts/ERC721.sol:47"
           }
         ],
         "types": {
@@ -699,10 +675,6 @@
             "label": "uint256[44]",
             "numberOfBytes": "1408"
           },
-          "t_array(t_uint256)46_storage": {
-            "label": "uint256[46]",
-            "numberOfBytes": "1472"
-          },
           "t_array(t_uint256)49_storage": {
             "label": "uint256[49]",
             "numberOfBytes": "1568"
@@ -710,10 +682,6 @@
           "t_array(t_uint256)50_storage": {
             "label": "uint256[50]",
             "numberOfBytes": "1600"
-          },
-          "t_array(t_uint256)dyn_storage": {
-            "label": "uint256[]",
-            "numberOfBytes": "32"
           },
           "t_bool": {
             "label": "bool",
@@ -727,8 +695,8 @@
             "label": "mapping(address => mapping(address => bool))",
             "numberOfBytes": "32"
           },
-          "t_mapping(t_address,t_mapping(t_uint256,t_uint256))": {
-            "label": "mapping(address => mapping(uint256 => uint256))",
+          "t_mapping(t_address,t_mapping(t_address,t_uint256))": {
+            "label": "mapping(address => mapping(address => uint256))",
             "numberOfBytes": "32"
           },
           "t_mapping(t_address,t_uint256)": {
@@ -747,10 +715,6 @@
             "label": "mapping(uint256 => string)",
             "numberOfBytes": "32"
           },
-          "t_mapping(t_uint256,t_struct(History)4498_storage)": {
-            "label": "mapping(uint256 => struct History)",
-            "numberOfBytes": "32"
-          },
           "t_mapping(t_uint256,t_uint256)": {
             "label": "mapping(uint256 => uint256)",
             "numberOfBytes": "32"
@@ -759,7 +723,7 @@
             "label": "string",
             "numberOfBytes": "32"
           },
-          "t_struct(Counter)2168_storage": {
+          "t_struct(Counter)2158_storage": {
             "label": "struct CountersUpgradeable.Counter",
             "members": [
               {
@@ -770,36 +734,6 @@
               }
             ],
             "numberOfBytes": "32"
-          },
-          "t_struct(History)4498_storage": {
-            "label": "struct History",
-            "members": [
-              {
-                "label": "id",
-                "type": "t_uint256",
-                "offset": 0,
-                "slot": "0"
-              },
-              {
-                "label": "tokenId",
-                "type": "t_uint256",
-                "offset": 0,
-                "slot": "1"
-              },
-              {
-                "label": "sender",
-                "type": "t_address",
-                "offset": 0,
-                "slot": "2"
-              },
-              {
-                "label": "recipient",
-                "type": "t_address",
-                "offset": 0,
-                "slot": "3"
-              }
-            ],
-            "numberOfBytes": "128"
           },
           "t_uint256": {
             "label": "uint256",

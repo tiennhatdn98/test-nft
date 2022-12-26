@@ -1,13 +1,15 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.17;
 
-import "@openzeppelin/contracts-upgradeable/token/ERC721/extensions/ERC721EnumerableUpgradeable.sol";
+import "@openzeppelin/contracts-upgradeable/token/ERC721/ERC721Upgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/utils/StringsUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/utils/CountersUpgradeable.sol";
-import "./interfaces/IERC721.sol";
+import "./libraries/Helper.sol";
 import "./Authorizable.sol";
+import "./interfaces/IERC721.sol";
+import "./interfaces/IERC20.sol";
 
-contract ERC721 is ERC721EnumerableUpgradeable, Authorizable {
+contract ERC721 is ERC721Upgradeable, Authorizable {
     using StringsUpgradeable for uint256;
 
     /**
@@ -17,28 +19,32 @@ contract ERC721 is ERC721EnumerableUpgradeable, Authorizable {
 
     using CountersUpgradeable for CountersUpgradeable.Counter;
 
-    CountersUpgradeable.Counter public lastTokenId;
-    CountersUpgradeable.Counter public lastHistoryId;
+    CountersUpgradeable.Counter public lastId;
 
     /**
-     * @notice Mapping history ID and URI to store history transfer
+     * @notice expiration uint256 is expired period of token
      */
-    mapping(uint256 => History) private _history;
+    uint256 public expiration;
+
+    /**
+     * @notice Mapping token ID expiration timestamp to store expired timestamp of each token
+     */
+    mapping(uint256 => uint256) public expirationOf;
+
+    /**
+     * @notice Mapping token ID to boolean to store status of each token (active or deactive)
+     */
+    mapping(uint256 => bool) public statusOf;
+
+    /**
+     * @notice Mapping token address to owner address to balance to store balance of token of each address
+     */
+    mapping(address => mapping(address => uint256)) public ownerBalanceOf;
 
     /**
      * @notice Mapping token ID and URI to store token URIs
      */
     mapping(uint256 => string) private _tokenURIs;
-
-    /**
-     * @notice Mapping token ID and boolean to store token is transfered or not
-     */
-    mapping(uint256 => bool) public transfered;
-
-    /**
-     * @dev Store merkle tree from token ID
-     */
-    // mapping(uint256 => bytes32) public merkleRoots;
 
     /**
      * @notice Emit event when contract is deployed
@@ -65,6 +71,29 @@ contract ERC721 is ERC721EnumerableUpgradeable, Authorizable {
     );
 
     /**
+     * @notice Emit event when set status of a token
+     */
+    event SetTokenStatus(uint256 indexed tokenId, bool status);
+
+    /**
+     * @notice Emit event when owner calls withdraw function
+     */
+    event Withdrawn(
+        address indexed paymentToken,
+        address indexed to,
+        uint256 amount
+    );
+
+    /**
+     * @notice Emit event when someone claims
+     */
+    event Claimed(
+        address indexed paymentToken,
+        address indexed to,
+        uint256 amount
+    );
+
+    /**
      * @notice Emit event when transfering token
      */
     event Transfered(
@@ -83,7 +112,6 @@ contract ERC721 is ERC721EnumerableUpgradeable, Authorizable {
      *  @param  _owner      Contract owner address
      *  @param  _tokenName  Token name
      *  @param  _symbol     Token symbol
-     *  @param  _baseUri    Base URI metadata
      *
      *  Emit event {Deployed}
      */
@@ -91,14 +119,13 @@ contract ERC721 is ERC721EnumerableUpgradeable, Authorizable {
         address _owner,
         string memory _tokenName,
         string memory _symbol,
-        string memory _baseUri
+        string memory _baseUri,
+        uint256 _expiration
     ) public initializer {
         __ERC721_init(_tokenName, _symbol);
         __Ownable_init();
         transferOwnership(_owner);
-
-        baseURI = _baseUri;
-
+        expiration = _expiration;
         emit Deployed(_owner, _tokenName, _symbol, _baseUri);
     }
 
@@ -112,7 +139,7 @@ contract ERC721 is ERC721EnumerableUpgradeable, Authorizable {
      *
      *  Emit event {SetBaseURI}
      */
-    function setBaseURI(string memory _newURI) external onlyOwnerOrController {
+    function setBaseURI(string memory _newURI) external onlyAdmin {
         require(
             keccak256(abi.encodePacked((_newURI))) !=
                 keccak256(abi.encodePacked((baseURI))),
@@ -126,32 +153,42 @@ contract ERC721 is ERC721EnumerableUpgradeable, Authorizable {
     /**
      *  @notice Set token URI by token ID
      *
-     *  @dev    Only owner or controller can call this function
-     *
      *          Name        Meaning
      *  @param  _tokenId    Token ID that want to set
      *  @param  _tokenURI   New token URI that want to set
      *
      *  Emit event {SetTokenURI}
      */
-    function setTokenURI(
-        uint256 _tokenId,
-        string memory _tokenURI
-    ) external onlyOwnerOrController {
+    function setTokenURI(uint256 _tokenId, string memory _tokenURI) external {
         require(
             _exists(_tokenId),
             "ERC721Metadata: URI set of nonexistent token"
         );
-        require(!transfered[_tokenId], "Token is transfered");
         string memory oldTokenURI = _tokenURIs[_tokenId];
         _tokenURIs[_tokenId] = _tokenURI;
         emit SetTokenURI(_tokenId, oldTokenURI, _tokenURI);
     }
 
     /**
-     *  @notice Get token URI by token ID
+     *  @notice Set status of token by token ID
      *
-     *  @dev    Only owner or controller can call this function
+     *          Name        Meaning
+     *  @param  _tokenId    Token ID that want to set
+     *  @param  _status     New token URI that want to set
+     *
+     *  Emit event {SetTokenStatus}
+     */
+    function setTokenStatus(uint256 _tokenId, bool _status) external {
+        require(
+            _exists(_tokenId),
+            "ERC721Metadata: URI set of nonexistent token"
+        );
+        require(statusOf[_tokenId] != _status, "Duplicate value");
+        emit SetTokenStatus(_tokenId, _status);
+    }
+
+    /**
+     *  @notice Get token URI by token ID
      *
      *          Name        Meaning
      *  @param  _tokenId    Token ID that want to set
@@ -170,24 +207,81 @@ contract ERC721 is ERC721EnumerableUpgradeable, Authorizable {
     }
 
     /**
+     *  @notice Set expired period of token
+     *
+     *  @dev    Only admin can call this function
+     *
+     *          Name        Meaning
+     *  @param  _expiration    Token ID that want to set
+     */
+    function setExpiration(uint256 _expiration) public onlyAdmin {
+        require(_expiration != 0, "Invalid expired period");
+        expiration = _expiration;
+    }
+
+    /**
      *  @notice Mint a token to an address
      *
      *  @dev    Only owner or controller can call this function
      *
-     *          Name        Meaning
-     *  @param  _to         Address that want to mint token\
-     *
-     *                      Type        Meaning
-     *  @return tokenId     uint256     New token ID
+     *          Name            Meaning
+     *  @param  _to             Address that want to mint token
+     *  @param  _signature      Signature
      *
      *  Emit event {Transfer(address(0), _to, tokenId)}
      */
-    function mint(
-        address _to
-    ) external onlyOwnerOrController returns (uint256 tokenId) {
-        lastTokenId.increment();
-        _safeMint(_to, lastTokenId.current());
-        tokenId = lastTokenId.current();
+    function mint(address _to, bytes32 _signature) external {
+        lastId.increment();
+        _safeMint(_to, lastId.current());
+        expirationOf[lastId.current()] = block.timestamp + expiration;
+        statusOf[lastId.current()] = true;
+    }
+
+    /**
+     *  @notice Withdraw
+     *
+     *  @dev    Only owner can call this function
+     *
+     *          Name            Meaning
+     *  @param  _paymentToken   Address of token that want tot withdraw
+     *  @param  _to             Recipient address
+     *  @param  _amount         Amount of payment token that want to withdraw
+     *
+     *  Emit event {Withdrawn}
+     */
+    function withdraw(
+        address _paymentToken,
+        address _to,
+        uint256 _amount
+    ) external onlyOwner {
+        handleTransfer(_paymentToken, _to, _amount);
+        emit Withdrawn(_paymentToken, _to, _amount);
+    }
+
+    /**
+     *  @notice Claim
+     *
+     *  @dev    Anyone can call this function
+     *
+     *          Name            Meaning
+     *  @param  _paymentToken   Address of token that want tot withdraw
+     *  @param  _to             Recipient address
+     *  @param  _amount         Amount of payment token that want to withdraw
+     *
+     *  Emit event {Claimed}
+     */
+    function claim(
+        address _paymentToken,
+        address _to,
+        uint256 _amount
+    ) external {
+        require(
+            ownerBalanceOf[_paymentToken][_to] <= _amount,
+            "Invalid amount"
+        );
+        handleTransfer(_paymentToken, _to, _amount);
+        ownerBalanceOf[_paymentToken][_to] -= _amount;
+        emit Claimed(_paymentToken, _to, _amount);
     }
 
     /**
@@ -203,36 +297,35 @@ contract ERC721 is ERC721EnumerableUpgradeable, Authorizable {
      */
     function transfer(address _to, uint256 _tokenId) external {
         require(_to != address(0), "Invalid address");
+        require(statusOf[_tokenId], "Token is deactive");
+        expirationOf[_tokenId] = block.timestamp + expiration;
         safeTransferFrom(_msgSender(), _to, _tokenId);
-        lastHistoryId.increment();
-        transfered[_tokenId] = true;
-        _history[lastHistoryId.current()] = History(
-            lastHistoryId.current(),
-            _tokenId,
-            _msgSender(),
-            _to
-        );
-        emit Transfered(lastHistoryId.current(), _msgSender(), _to, _tokenId);
     }
 
     /**
-     *  @notice Get history transfer of sender and recipient addresses
+     *  @notice Handle transfer token
      *
-     *  @dev    Anyone can call this function
+     *  @dev    Private function
      *
-     *          Name        Meaning
-     *  @param  _historyId  History transfer ID
-     *
-     *          Type        Meaning
-     *  @return History     History transfer detail
+     *          Name            Meaning
+     *  @param  _paymentToken   Payment token address
+     *  @param  _to             Recipient address
+     *  @param  _amount         Amount of token that want to transfer
      */
-    function getHistoryTransfer(
-        uint256 _historyId
-    ) external view returns (History memory) {
-        require(
-            _historyId > 0 && _historyId <= lastHistoryId.current(),
-            "Invalid history ID"
-        );
-        return _history[_historyId];
+    function handleTransfer(
+        address _paymentToken,
+        address _to,
+        uint256 _amount
+    ) private {
+        require(_to != address(0), "Invalid address");
+        require(_amount != 0, "Invalid amount");
+        if (_paymentToken == address(0)) {
+            require(_amount <= address(this).balance, "Invalid amount");
+            Helper.safeTransferNative(_to, _amount);
+        } else {
+            uint256 balance = IERC20(_paymentToken).balanceOf(_to);
+            require(_amount <= balance, "Invalid amount");
+            IERC20(_paymentToken).transferFrom(address(this), _to, _amount);
+        }
     }
 }
