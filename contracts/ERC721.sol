@@ -8,14 +8,15 @@ import "./libraries/Helper.sol";
 import "./Authorizable.sol";
 import "./interfaces/IERC721.sol";
 import "./interfaces/IERC20.sol";
+import "./VerifySignature.sol";
 
-contract ERC721 is ERC721Upgradeable, Authorizable {
+contract ERC721 is ERC721Upgradeable, Authorizable, VerifySignature {
     using StringsUpgradeable for uint256;
 
     /**
      * @notice baseURI string is base URI of token
      */
-    string public baseURI;
+    // string public baseURI;
 
     using CountersUpgradeable for CountersUpgradeable.Counter;
 
@@ -52,8 +53,8 @@ contract ERC721 is ERC721Upgradeable, Authorizable {
     event Deployed(
         address indexed owner,
         string tokenName,
-        string symbol,
-        string baseUri
+        string symbol
+        // string baseUri
     );
 
     /**
@@ -94,16 +95,6 @@ contract ERC721 is ERC721Upgradeable, Authorizable {
     );
 
     /**
-     * @notice Emit event when transfering token
-     */
-    event Transfered(
-        uint256 indexed historyId,
-        address from,
-        address to,
-        uint256 indexed tokenId
-    );
-
-    /**
      *  @notice Update new base URI
      *
      *  @dev    Only owner or controller can call this function
@@ -119,14 +110,15 @@ contract ERC721 is ERC721Upgradeable, Authorizable {
         address _owner,
         string memory _tokenName,
         string memory _symbol,
-        string memory _baseUri,
+        // string memory _baseUri,
         uint256 _expiration
     ) public initializer {
         __ERC721_init(_tokenName, _symbol);
         __Ownable_init();
         transferOwnership(_owner);
+        // baseURI = _baseUri;
         expiration = _expiration;
-        emit Deployed(_owner, _tokenName, _symbol, _baseUri);
+        emit Deployed(_owner, _tokenName, _symbol);
     }
 
     /**
@@ -139,16 +131,16 @@ contract ERC721 is ERC721Upgradeable, Authorizable {
      *
      *  Emit event {SetBaseURI}
      */
-    function setBaseURI(string memory _newURI) external onlyAdmin {
-        require(
-            keccak256(abi.encodePacked((_newURI))) !=
-                keccak256(abi.encodePacked((baseURI))),
-            "Duplicate base URI"
-        );
-        string memory oldURI = baseURI;
-        baseURI = _newURI;
-        emit SetBaseURI(oldURI, _newURI);
-    }
+    // function setBaseURI(string memory _newURI) external onlyAdmin {
+    //     require(
+    //         keccak256(abi.encodePacked((_newURI))) !=
+    //             keccak256(abi.encodePacked((baseURI))),
+    //         "Duplicate base URI"
+    //     );
+    //     string memory oldURI = baseURI;
+    //     baseURI = _newURI;
+    //     emit SetBaseURI(oldURI, _newURI);
+    // }
 
     /**
      *  @notice Set token URI by token ID
@@ -159,11 +151,23 @@ contract ERC721 is ERC721Upgradeable, Authorizable {
      *
      *  Emit event {SetTokenURI}
      */
-    function setTokenURI(uint256 _tokenId, string memory _tokenURI) external {
+    function setTokenURI(
+        uint256 _tokenId,
+        string memory _tokenURI,
+        bytes memory _signature
+    ) public {
         require(
             _exists(_tokenId),
             "ERC721Metadata: URI set of nonexistent token"
         );
+        TokenInput memory _tokenInput = TokenInput(
+            _tokenId,
+            _tokenURI,
+            false,
+            address(0),
+            0
+        );
+        require(verify(verifier, _tokenInput, _signature), "Invalid signature");
         string memory oldTokenURI = _tokenURIs[_tokenId];
         _tokenURIs[_tokenId] = _tokenURI;
         emit SetTokenURI(_tokenId, oldTokenURI, _tokenURI);
@@ -174,15 +178,26 @@ contract ERC721 is ERC721Upgradeable, Authorizable {
      *
      *          Name        Meaning
      *  @param  _tokenId    Token ID that want to set
-     *  @param  _status     New token URI that want to set
-     *
+     *  @param  _status     New status of token that want to set (true is ACTIVE, false is DEACTIVE)
      *  Emit event {SetTokenStatus}
      */
-    function setTokenStatus(uint256 _tokenId, bool _status) external {
+    function setTokenStatus(
+        uint256 _tokenId,
+        bool _status,
+        bytes memory _signature
+    ) public {
         require(
             _exists(_tokenId),
             "ERC721Metadata: URI set of nonexistent token"
         );
+        TokenInput memory _tokenInput = TokenInput(
+            _tokenId,
+            "",
+            _status,
+            address(0),
+            0
+        );
+        require(verify(verifier, _tokenInput, _signature), "Invalid signature");
         require(statusOf[_tokenId] != _status, "Duplicate value");
         emit SetTokenStatus(_tokenId, _status);
     }
@@ -191,7 +206,7 @@ contract ERC721 is ERC721Upgradeable, Authorizable {
      *  @notice Get token URI by token ID
      *
      *          Name        Meaning
-     *  @param  _tokenId    Token ID that want to set
+     *  @param  _tokenId    Token ID that want to get token URI
      *
      *          Type        Meaning
      *  @return string      Token URI
@@ -211,8 +226,8 @@ contract ERC721 is ERC721Upgradeable, Authorizable {
      *
      *  @dev    Only admin can call this function
      *
-     *          Name        Meaning
-     *  @param  _expiration    Token ID that want to set
+     *          Name            Meaning
+     *  @param  _expiration     New expired period of token
      */
     function setExpiration(uint256 _expiration) public onlyAdmin {
         require(_expiration != 0, "Invalid expired period");
@@ -226,15 +241,33 @@ contract ERC721 is ERC721Upgradeable, Authorizable {
      *
      *          Name            Meaning
      *  @param  _to             Address that want to mint token
+     *  @param  _tokenInput     Parameters that want to set
      *  @param  _signature      Signature
      *
      *  Emit event {Transfer(address(0), _to, tokenId)}
      */
-    function mint(address _to, bytes32 _signature) external {
+    function mint(
+        address _to,
+        TokenInput memory _tokenInput,
+        bytes memory _signature
+    ) external {
+        require(_to != address(0), "Invalid address");
+        require(_tokenInput.amount > 0, "Invalid amount");
+        require(verify(verifier, _tokenInput, _signature), "Invalid signature");
         lastId.increment();
         _safeMint(_to, lastId.current());
+        setTokenURI(lastId.current(), _tokenInput.tokenURI, _signature);
+        setTokenStatus(lastId.current(), true, _signature);
         expirationOf[lastId.current()] = block.timestamp + expiration;
+        ownerBalanceOf[_tokenInput.paymentToken][_msgSender()] += _tokenInput
+            .amount;
         statusOf[lastId.current()] = true;
+        handleTransfer(
+            _msgSender(),
+            _to,
+            _tokenInput.paymentToken,
+            _tokenInput.amount
+        );
     }
 
     /**
@@ -243,7 +276,7 @@ contract ERC721 is ERC721Upgradeable, Authorizable {
      *  @dev    Only owner can call this function
      *
      *          Name            Meaning
-     *  @param  _paymentToken   Address of token that want tot withdraw
+     *  @param  _paymentToken   Address of token that want to withdraw (Zero address if withdraw native token)
      *  @param  _to             Recipient address
      *  @param  _amount         Amount of payment token that want to withdraw
      *
@@ -254,7 +287,7 @@ contract ERC721 is ERC721Upgradeable, Authorizable {
         address _to,
         uint256 _amount
     ) external onlyOwner {
-        handleTransfer(_paymentToken, _to, _amount);
+        handleTransfer(_msgSender(), _to, _paymentToken, _amount);
         emit Withdrawn(_paymentToken, _to, _amount);
     }
 
@@ -264,7 +297,7 @@ contract ERC721 is ERC721Upgradeable, Authorizable {
      *  @dev    Anyone can call this function
      *
      *          Name            Meaning
-     *  @param  _paymentToken   Address of token that want tot withdraw
+     *  @param  _paymentToken   Address of token that want tot withdraw (Zero address if claim native token)
      *  @param  _to             Recipient address
      *  @param  _amount         Amount of payment token that want to withdraw
      *
@@ -279,8 +312,8 @@ contract ERC721 is ERC721Upgradeable, Authorizable {
             ownerBalanceOf[_paymentToken][_to] <= _amount,
             "Invalid amount"
         );
-        handleTransfer(_paymentToken, _to, _amount);
         ownerBalanceOf[_paymentToken][_to] -= _amount;
+        handleTransfer(address(this), _to, _paymentToken, _amount);
         emit Claimed(_paymentToken, _to, _amount);
     }
 
@@ -293,7 +326,7 @@ contract ERC721 is ERC721Upgradeable, Authorizable {
      *  @param  _to             Recipient address
      *  @param  _tokenId        Token ID
      *
-     *  Emit event {Transfered}
+     *  Emit event {Transfer(from, to, tokenId)}
      */
     function transfer(address _to, uint256 _tokenId) external {
         require(_to != address(0), "Invalid address");
@@ -308,13 +341,15 @@ contract ERC721 is ERC721Upgradeable, Authorizable {
      *  @dev    Private function
      *
      *          Name            Meaning
-     *  @param  _paymentToken   Payment token address
+     *  @param  _from           Sender address
      *  @param  _to             Recipient address
+     *  @param  _paymentToken   Payment token address (Zero address if transfer native token)
      *  @param  _amount         Amount of token that want to transfer
      */
     function handleTransfer(
-        address _paymentToken,
+        address _from,
         address _to,
+        address _paymentToken,
         uint256 _amount
     ) private {
         require(_to != address(0), "Invalid address");
@@ -323,9 +358,9 @@ contract ERC721 is ERC721Upgradeable, Authorizable {
             require(_amount <= address(this).balance, "Invalid amount");
             Helper.safeTransferNative(_to, _amount);
         } else {
-            uint256 balance = IERC20(_paymentToken).balanceOf(_to);
+            uint256 balance = IERC20(_paymentToken).balanceOf(_from);
             require(_amount <= balance, "Invalid amount");
-            IERC20(_paymentToken).transferFrom(address(this), _to, _amount);
+            IERC20(_paymentToken).transferFrom(_from, _to, _amount);
         }
     }
 }

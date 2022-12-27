@@ -28,3 +28,11 @@ interface IERC721 is IERC721MetadataUpgradeable {
 
     function transfer(address _from, address _to, uint256 tokenId) external;
 }
+
+struct TokenInput {
+    uint256 tokenId;
+    string tokenURI;
+    bool status; // true is ACTIVE, false is DEACTIVE
+    address paymentToken;
+    uint256 amount;
+}

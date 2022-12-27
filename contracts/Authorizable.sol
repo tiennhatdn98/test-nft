@@ -8,12 +8,12 @@ abstract contract Authorizable is IAuthorizable, OwnableUpgradeable {
     /**
      * @notice admin address is Admin address
      */
-    address admin;
+    address public admin;
 
     /**
      * @notice verifier address is Verifier address
      */
-    address verifier;
+    address public verifier;
 
     /**
      * @notice Emit event when set an address to a admin

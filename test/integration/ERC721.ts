@@ -6,10 +6,10 @@ import { ZERO_ADDRESS } from "@openzeppelin/test-helpers/src/constants";
 import { Contract } from "ethers";
 import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
 
-const baseURI = "ipfs://";
-const tokenName = "Token";
-const symbol = "TKN";
-const tokenURI = "ipfs://tokenURI";
+const baseURI: string = "ipfs://";
+const tokenName: string = "Token";
+const symbol: string = "TKN";
+const tokenURI: string = "ipfs://tokenURI";
 
 describe("ERC721 Integration", () => {
   let erc721: Contract;
