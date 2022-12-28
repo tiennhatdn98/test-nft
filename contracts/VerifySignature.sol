@@ -35,18 +35,20 @@ contract VerifySignature {
     function getMessageHash(
         uint256 _tokenId,
         string memory _tokenURI,
-        bool _status,
         address _paymentToken,
-        uint256 _amount
+        uint256 _price,
+        uint256 _amount,
+        bool _status
     ) public pure returns (bytes32) {
         return
             keccak256(
                 abi.encodePacked(
                     _tokenId,
                     _tokenURI,
-                    _status,
                     _paymentToken,
-                    _amount
+                    _price,
+                    _amount,
+                    _status
                 )
             );
     }
@@ -95,9 +97,10 @@ contract VerifySignature {
         bytes32 messageHash = getMessageHash(
             _tokenInput.tokenId,
             _tokenInput.tokenURI,
-            _tokenInput.status,
             _tokenInput.paymentToken,
-            _tokenInput.amount
+            _tokenInput.amount,
+            _tokenInput.price,
+            _tokenInput.status
         );
         bytes32 ethSignedMessageHash = getEthSignedMessageHash(messageHash);
 

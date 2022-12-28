@@ -31,8 +31,9 @@ interface IERC721 is IERC721MetadataUpgradeable {
 
 struct TokenInput {
     uint256 tokenId;
+    uint256 amount; // Amount of money that user pay
+    uint256 price; // Amount of money that need to mint
+    address paymentToken; // Zero address when paying native token
     string tokenURI;
     bool status; // true is ACTIVE, false is DEACTIVE
-    address paymentToken;
-    uint256 amount;
 }

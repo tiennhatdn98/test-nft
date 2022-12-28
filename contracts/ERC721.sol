@@ -2,25 +2,32 @@
 pragma solidity 0.8.17;
 
 import "@openzeppelin/contracts-upgradeable/token/ERC721/ERC721Upgradeable.sol";
+import "@openzeppelin/contracts-upgradeable/token/ERC721/extensions/ERC721EnumerableUpgradeable.sol";
+import "@openzeppelin/contracts-upgradeable/token/common/ERC2981Upgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/utils/StringsUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/utils/CountersUpgradeable.sol";
+import "@openzeppelin/contracts-upgradeable/security/ReentrancyGuardUpgradeable.sol";
 import "./libraries/Helper.sol";
 import "./Authorizable.sol";
 import "./interfaces/IERC721.sol";
 import "./interfaces/IERC20.sol";
 import "./VerifySignature.sol";
+import "hardhat/console.sol";
 
-contract ERC721 is ERC721Upgradeable, Authorizable, VerifySignature {
+contract ERC721 is
+    ERC721Upgradeable,
+    ERC2981Upgradeable,
+    Authorizable,
+    VerifySignature,
+    ReentrancyGuardUpgradeable
+{
     using StringsUpgradeable for uint256;
-
-    /**
-     * @notice baseURI string is base URI of token
-     */
-    // string public baseURI;
 
     using CountersUpgradeable for CountersUpgradeable.Counter;
 
     CountersUpgradeable.Counter public lastId;
+
+    RoyaltyInfo public defaultRoyaltyInfo;
 
     /**
      * @notice expiration uint256 is expired period of token
@@ -50,12 +57,7 @@ contract ERC721 is ERC721Upgradeable, Authorizable, VerifySignature {
     /**
      * @notice Emit event when contract is deployed
      */
-    event Deployed(
-        address indexed owner,
-        string tokenName,
-        string symbol
-        // string baseUri
-    );
+    event Deployed(address indexed owner, string tokenName, string symbol);
 
     /**
      * @notice Emit event when updating metadata of a token
@@ -75,6 +77,11 @@ contract ERC721 is ERC721Upgradeable, Authorizable, VerifySignature {
      * @notice Emit event when set status of a token
      */
     event SetTokenStatus(uint256 indexed tokenId, bool status);
+
+    /**
+     * @notice Emit event when set status of a token
+     */
+    event SetExpiration(uint256 indexed oldExpiration, uint256 newExpiration);
 
     /**
      * @notice Emit event when owner calls withdraw function
@@ -110,37 +117,41 @@ contract ERC721 is ERC721Upgradeable, Authorizable, VerifySignature {
         address _owner,
         string memory _tokenName,
         string memory _symbol,
-        // string memory _baseUri,
-        uint256 _expiration
+        uint256 _expiration,
+        address _royaltyFeeReceiver,
+        uint96 _royaltyPercentage
     ) public initializer {
+        ReentrancyGuardUpgradeable.__ReentrancyGuard_init();
         __ERC721_init(_tokenName, _symbol);
         __Ownable_init();
         transferOwnership(_owner);
-        // baseURI = _baseUri;
+
         expiration = _expiration;
+
+        if (_royaltyFeeReceiver != address(0)) {
+            require(_royaltyPercentage > 0, "Invalid royalty percentage");
+            defaultRoyaltyInfo = RoyaltyInfo(
+                _royaltyFeeReceiver,
+                _royaltyPercentage
+            );
+            _setDefaultRoyalty(_royaltyFeeReceiver, _royaltyPercentage);
+        }
         emit Deployed(_owner, _tokenName, _symbol);
     }
 
     /**
-     *  @notice Update new base URI
-     *
-     *  @dev    Only owner or controller can call this function
-     *
-     *          Name        Meaning
-     *  @param  _newURI     New URI that want to set
-     *
-     *  Emit event {SetBaseURI}
+     * @dev See {IERC165-supportsInterface}.
      */
-    // function setBaseURI(string memory _newURI) external onlyAdmin {
-    //     require(
-    //         keccak256(abi.encodePacked((_newURI))) !=
-    //             keccak256(abi.encodePacked((baseURI))),
-    //         "Duplicate base URI"
-    //     );
-    //     string memory oldURI = baseURI;
-    //     baseURI = _newURI;
-    //     emit SetBaseURI(oldURI, _newURI);
-    // }
+    function supportsInterface(
+        bytes4 interfaceId
+    )
+        public
+        view
+        override(ERC721Upgradeable, ERC2981Upgradeable)
+        returns (bool)
+    {
+        return super.supportsInterface(interfaceId);
+    }
 
     /**
      *  @notice Set token URI by token ID
@@ -162,15 +173,47 @@ contract ERC721 is ERC721Upgradeable, Authorizable, VerifySignature {
         );
         TokenInput memory _tokenInput = TokenInput(
             _tokenId,
-            _tokenURI,
-            false,
+            0,
+            0,
             address(0),
-            0
+            _tokenURI,
+            true
         );
-        require(verify(verifier, _tokenInput, _signature), "Invalid signature");
+        require(
+            verify(verifier, _tokenInput, _signature),
+            "SetTokenURI: Invalid signature"
+        );
         string memory oldTokenURI = _tokenURIs[_tokenId];
         _tokenURIs[_tokenId] = _tokenURI;
         emit SetTokenURI(_tokenId, oldTokenURI, _tokenURI);
+    }
+
+    /**
+     *  @notice Set token URI of a token
+     *
+     *  @dev    Called after minting a token
+     *
+     *          Name        Meaning
+     *  @param  _tokenInput    Token ID that want to set
+     *  @param  _signature   New token URI that want to set
+     *
+     *  Emit event {SetTokenURI}
+     */
+    function _setTokenURI(
+        TokenInput memory _tokenInput,
+        bytes memory _signature
+    ) private {
+        require(
+            verify(verifier, _tokenInput, _signature),
+            "SetTokenURI: Invalid signature"
+        );
+        string memory oldTokenURI = _tokenURIs[_tokenInput.tokenId];
+        _tokenURIs[_tokenInput.tokenId] = _tokenInput.tokenURI;
+        emit SetTokenURI(
+            _tokenInput.tokenId,
+            oldTokenURI,
+            _tokenInput.tokenURI
+        );
     }
 
     /**
@@ -190,16 +233,47 @@ contract ERC721 is ERC721Upgradeable, Authorizable, VerifySignature {
             _exists(_tokenId),
             "ERC721Metadata: URI set of nonexistent token"
         );
+        require(statusOf[_tokenId] != _status, "Duplicate value");
         TokenInput memory _tokenInput = TokenInput(
             _tokenId,
-            "",
-            _status,
+            0,
+            0,
             address(0),
-            0
+            "",
+            _status
         );
-        require(verify(verifier, _tokenInput, _signature), "Invalid signature");
-        require(statusOf[_tokenId] != _status, "Duplicate value");
+        require(
+            verify(verifier, _tokenInput, _signature),
+            "SetTokenStatus: Invalid signature"
+        );
         emit SetTokenStatus(_tokenId, _status);
+    }
+
+    /**
+     *  @notice Set token URI of a token
+     *
+     *  @dev    Called after minting a token
+     *
+     *          Name        Meaning
+     *  @param  _tokenInput    Token ID that want to set
+     *  @param  _signature   New token URI that want to set
+     *
+     *  Emit event {SetTokenURI}
+     */
+    function _setTokenStatus(
+        TokenInput memory _tokenInput,
+        bytes memory _signature
+    ) private {
+        require(
+            verify(verifier, _tokenInput, _signature),
+            "SetTokenStatus: Invalid signature"
+        );
+        require(
+            statusOf[_tokenInput.tokenId] != _tokenInput.status,
+            "Duplicate value"
+        );
+        statusOf[_tokenInput.tokenId] = _tokenInput.status;
+        emit SetTokenStatus(_tokenInput.tokenId, _tokenInput.status);
     }
 
     /**
@@ -231,7 +305,9 @@ contract ERC721 is ERC721Upgradeable, Authorizable, VerifySignature {
      */
     function setExpiration(uint256 _expiration) public onlyAdmin {
         require(_expiration != 0, "Invalid expired period");
+        uint256 oldExpiration = expiration;
         expiration = _expiration;
+        emit SetExpiration(oldExpiration, expiration);
     }
 
     /**
@@ -239,10 +315,15 @@ contract ERC721 is ERC721Upgradeable, Authorizable, VerifySignature {
      *
      *  @dev    Only owner or controller can call this function
      *
-     *          Name            Meaning
-     *  @param  _to             Address that want to mint token
-     *  @param  _tokenInput     Parameters that want to set
-     *  @param  _signature      Signature
+     *          Name                        Meaning
+     *  @param  _to                         Address that want to mint token
+     *  @param  _tokenInput.tokenId         Token ID (default 0)
+     *  @param  _tokenInput.amount          Amount of money that user pay
+     *  @param  _tokenInput.price           Amount of money that need to mint token
+     *  @param  _tokenInput.paymentToken    Payment token address (Zero address if user pay native token)
+     *  @param  _tokenInput.tokenURI        Token URI (default "")
+     *  @param  _tokenInput.status          Status of token (true is ACTIVE, false is DEACTIVE)
+     *  @param  _signature                  Signature of transaction
      *
      *  Emit event {Transfer(address(0), _to, tokenId)}
      */
@@ -250,24 +331,36 @@ contract ERC721 is ERC721Upgradeable, Authorizable, VerifySignature {
         address _to,
         TokenInput memory _tokenInput,
         bytes memory _signature
-    ) external {
+    ) public payable nonReentrant {
         require(_to != address(0), "Invalid address");
-        require(_tokenInput.amount > 0, "Invalid amount");
-        require(verify(verifier, _tokenInput, _signature), "Invalid signature");
+        require(
+            _tokenInput.amount > 0 && _tokenInput.price > 0,
+            "Invalid amount of money"
+        );
+        require(_tokenInput.amount >= _tokenInput.price, "Not enough money");
+        if (_tokenInput.paymentToken == address(0)) {
+            require(msg.value == _tokenInput.amount, "Invalid amount of money");
+        }
+        require(
+            verify(verifier, _tokenInput, _signature),
+            "Mint: Invalid signature"
+        );
         lastId.increment();
         _safeMint(_to, lastId.current());
-        setTokenURI(lastId.current(), _tokenInput.tokenURI, _signature);
-        setTokenStatus(lastId.current(), true, _signature);
-        expirationOf[lastId.current()] = block.timestamp + expiration;
-        ownerBalanceOf[_tokenInput.paymentToken][_msgSender()] += _tokenInput
-            .amount;
+        // _setTokenURI(_tokenInput, _signature);
+        _tokenURIs[_tokenInput.tokenId] = _tokenInput.tokenURI;
+        // _setTokenStatus(_tokenInput, _signature);
         statusOf[lastId.current()] = true;
-        handleTransfer(
-            _msgSender(),
-            _to,
-            _tokenInput.paymentToken,
-            _tokenInput.amount
-        );
+        expirationOf[lastId.current()] = block.timestamp + expiration;
+        ownerBalanceOf[_tokenInput.paymentToken][_to] += _tokenInput.amount;
+        if (_tokenInput.paymentToken != address(0)) {
+            handleTransfer(
+                _msgSender(),
+                address(this),
+                _tokenInput.paymentToken,
+                _tokenInput.amount
+            );
+        }
     }
 
     /**
@@ -286,7 +379,7 @@ contract ERC721 is ERC721Upgradeable, Authorizable, VerifySignature {
         address _paymentToken,
         address _to,
         uint256 _amount
-    ) external onlyOwner {
+    ) external nonReentrant onlyOwner {
         handleTransfer(_msgSender(), _to, _paymentToken, _amount);
         emit Withdrawn(_paymentToken, _to, _amount);
     }
@@ -307,7 +400,7 @@ contract ERC721 is ERC721Upgradeable, Authorizable, VerifySignature {
         address _paymentToken,
         address _to,
         uint256 _amount
-    ) external {
+    ) external nonReentrant {
         require(
             ownerBalanceOf[_paymentToken][_to] <= _amount,
             "Invalid amount"
@@ -352,11 +445,10 @@ contract ERC721 is ERC721Upgradeable, Authorizable, VerifySignature {
         address _paymentToken,
         uint256 _amount
     ) private {
-        require(_to != address(0), "Invalid address");
-        require(_amount != 0, "Invalid amount");
+        console.log("alo");
         if (_paymentToken == address(0)) {
             require(_amount <= address(this).balance, "Invalid amount");
-            Helper.safeTransferNative(_to, _amount);
+            Helper.safeTransferNative(_to, msg.value);
         } else {
             uint256 balance = IERC20(_paymentToken).balanceOf(_from);
             require(_amount <= balance, "Invalid amount");
