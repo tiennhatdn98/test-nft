@@ -159,6 +159,7 @@ contract ERC721 is
      *          Name        Meaning
      *  @param  _tokenId    Token ID that want to set
      *  @param  _tokenURI   New token URI that want to set
+     *  @param  _signature  Signature
      *
      *  Emit event {SetTokenURI}
      */

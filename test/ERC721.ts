@@ -9,7 +9,6 @@ import { blockTimestamp } from "./utils";
 
 const MAX_UINT256 = ethers.constants.MaxUint256;
 const provider = ethers.provider;
-const baseURI = "ipfs://";
 const tokenName = "Token";
 const symbol = "TKN";
 const tokenURI = "ipfs://tokenURI";
@@ -75,7 +74,6 @@ describe("ERC721", () => {
   describe("1. Initialize", () => {
     it("1.1. Should assign state successfully", async () => {
       expect(await erc721.owner()).to.be.equal(owner.address);
-      // expect(await erc721.baseURI()).to.be.equal(baseURI);
       expect(await erc721.name()).to.be.equal(tokenName);
       expect(await erc721.symbol()).to.be.equal(symbol);
       expect(await erc721.lastId()).to.be.equal(0);
@@ -292,7 +290,7 @@ describe("ERC721", () => {
 
     it("4.3. Should set successfully", async () => {
       expect(await erc721.connect(admin).setVerifier(users[0].address))
-        .to.emit(erc721, "SetAdmin")
+        .to.emit(erc721, "SetVerifier")
         .withArgs(verifier.address, users[0].address);
       expect(await erc721.verifier()).to.be.equal(users[0].address);
     });
@@ -314,13 +312,13 @@ describe("ERC721", () => {
     it("5.3. Should set successfully", async () => {
       const oldExpiration = await erc721.expiration();
       expect(await erc721.connect(admin).setExpiration(YEAR_TO_SECONDS))
-        .to.emit(erc721, "SetAdmin")
+        .to.emit(erc721, "SetExpiration")
         .withArgs(oldExpiration, YEAR_TO_SECONDS);
       expect(await erc721.expiration()).to.be.equal(YEAR_TO_SECONDS);
     });
   });
 
-  describe("6. Set Token URI", () => {
+  describe.only("6. Set Token URI", () => {
     beforeEach(async () => {
       tokenInput = {
         tokenId: 0,
@@ -339,37 +337,85 @@ describe("ERC721", () => {
         tokenInput.price,
         tokenInput.status
       );
-
       const sig = await verifier.signMessage(ethers.utils.arrayify(hash));
 
       await erc721.connect(users[0]).mint(users[0].address, tokenInput, sig, {
         value: ethers.utils.parseEther("1"),
       });
     });
+
     it("6.1. Should be fail when token ID is nonexistent", async () => {
       await expect(
         erc721.setTokenURI(NONEXISTENT_TOKEN_ID, tokenURI, sampleSignature)
       ).to.be.revertedWith("ERC721Metadata: URI set of nonexistent token");
     });
 
-    it("6.2. Should be fail when signature is invalid", async () => {
-      const tokenId = (await erc721.lastId()).add(1);
-      console.log("Token ID: ", tokenId);
+    it("6.2. Should be fail when transaction is not signed by verifier", async () => {
+      const tokenId = await erc721.lastId();
+      tokenInput.tokenId = tokenId;
+      tokenInput.tokenURI = "ipfs://2.json";
+      tokenInput.amount = 0;
+      tokenInput.price = 0;
 
-      const hash = await erc721.getMessageHash(
-        tokenId,
-        tokenURI,
-        tokenStatus,
-        paymentToken,
-        amount
+      const correctHash = await erc721.getMessageHash(
+        tokenInput.tokenId,
+        tokenInput.tokenURI,
+        tokenInput.paymentToken,
+        tokenInput.price,
+        tokenInput.amount,
+        tokenInput.status
       );
-      const signature = await verifier.signMessage(ethers.utils.arrayify(hash));
+      const sig = await owner.signMessage(ethers.utils.arrayify(correctHash));
 
-      await erc721.setTokenURI(users[0].address);
-      await erc721.connect(users[0]).transfer(users[1].address, tokenId);
-      await expect(erc721.setTokenURI(tokenId, tokenURI)).to.be.revertedWith(
-        "Token is transfered"
+      await expect(
+        erc721.setTokenURI(tokenId, tokenURI, sig)
+      ).to.be.revertedWith("SetTokenURI: Invalid signature");
+    });
+
+    it.only("6.3. Should be fail when signature is invalid", async () => {
+      const correctTokenURI = "ipfs://2.json";
+      const wrongTokenURI = "ipfs://dump";
+      const tokenId = await erc721.lastId();
+      tokenInput.tokenId = tokenId;
+      tokenInput.tokenURI = wrongTokenURI;
+      tokenInput.amount = 0;
+      tokenInput.price = 0;
+
+      const correctHash = await erc721.getMessageHash(
+        tokenInput.tokenId,
+        tokenInput.tokenURI,
+        tokenInput.paymentToken,
+        tokenInput.price,
+        tokenInput.amount,
+        tokenInput.status
       );
+      const sig = await verifier.signMessage(
+        ethers.utils.arrayify(correctHash)
+      );
+      await expect(
+        erc721.setTokenURI(tokenId, correctTokenURI, sig)
+      ).to.be.revertedWith("SetTokenURI: Invalid signature");
+    });
+
+    it.only("6.4. Should set successfully", async () => {
+      const tokenURI = "ipfs://2.json";
+      const tokenId = await erc721.lastId();
+      tokenInput.tokenId = tokenId;
+      tokenInput.tokenURI = tokenURI;
+      tokenInput.amount = 0;
+      tokenInput.price = 0;
+
+      const correctHash = await erc721.getMessageHash(
+        tokenInput.tokenId,
+        tokenInput.tokenURI,
+        tokenInput.paymentToken,
+        tokenInput.price,
+        tokenInput.amount,
+        tokenInput.status
+      );
+      const sig = await owner.signMessage(ethers.utils.arrayify(correctHash));
+      await erc721.setTokenURI(tokenId, tokenURI, sig);
+      expect(await erc721.tokenURI(tokenId)).to.be.equal(tokenURI);
     });
   });
 
