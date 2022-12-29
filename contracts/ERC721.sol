@@ -190,34 +190,6 @@ contract ERC721 is
     }
 
     /**
-     *  @notice Set token URI of a token
-     *
-     *  @dev    Called after minting a token
-     *
-     *          Name        Meaning
-     *  @param  _tokenInput    Token ID that want to set
-     *  @param  _signature   New token URI that want to set
-     *
-     *  Emit event {SetTokenURI}
-     */
-    function _setTokenURI(
-        TokenInput memory _tokenInput,
-        bytes memory _signature
-    ) private {
-        require(
-            verify(verifier, _tokenInput, _signature),
-            "SetTokenURI: Invalid signature"
-        );
-        string memory oldTokenURI = _tokenURIs[_tokenInput.tokenId];
-        _tokenURIs[_tokenInput.tokenId] = _tokenInput.tokenURI;
-        emit SetTokenURI(
-            _tokenInput.tokenId,
-            oldTokenURI,
-            _tokenInput.tokenURI
-        );
-    }
-
-    /**
      *  @notice Set status of token by token ID
      *
      *          Name        Meaning
@@ -247,34 +219,8 @@ contract ERC721 is
             verify(verifier, _tokenInput, _signature),
             "SetTokenStatus: Invalid signature"
         );
+        statusOf[_tokenId] = _status;
         emit SetTokenStatus(_tokenId, _status);
-    }
-
-    /**
-     *  @notice Set token URI of a token
-     *
-     *  @dev    Called after minting a token
-     *
-     *          Name        Meaning
-     *  @param  _tokenInput    Token ID that want to set
-     *  @param  _signature   New token URI that want to set
-     *
-     *  Emit event {SetTokenURI}
-     */
-    function _setTokenStatus(
-        TokenInput memory _tokenInput,
-        bytes memory _signature
-    ) private {
-        require(
-            verify(verifier, _tokenInput, _signature),
-            "SetTokenStatus: Invalid signature"
-        );
-        require(
-            statusOf[_tokenInput.tokenId] != _tokenInput.status,
-            "Duplicate value"
-        );
-        statusOf[_tokenInput.tokenId] = _tokenInput.status;
-        emit SetTokenStatus(_tokenInput.tokenId, _tokenInput.status);
     }
 
     /**
@@ -322,8 +268,8 @@ contract ERC721 is
      *  @param  _tokenInput.amount          Amount of money that user pay
      *  @param  _tokenInput.price           Amount of money that need to mint token
      *  @param  _tokenInput.paymentToken    Payment token address (Zero address if user pay native token)
-     *  @param  _tokenInput.tokenURI        Token URI (default "")
-     *  @param  _tokenInput.status          Status of token (true is ACTIVE, false is DEACTIVE)
+     *  @param  _tokenInput.tokenURI        Token URI
+     *  @param  _tokenInput.status          Status of token (true is ACTIVE, false is DEACTIVE, default true)
      *  @param  _signature                  Signature of transaction
      *
      *  Emit event {Transfer(address(0), _to, tokenId)}
@@ -349,7 +295,7 @@ contract ERC721 is
         lastId.increment();
         _safeMint(_to, lastId.current());
         // _setTokenURI(_tokenInput, _signature);
-        _tokenURIs[_tokenInput.tokenId] = _tokenInput.tokenURI;
+        _tokenURIs[lastId.current()] = _tokenInput.tokenURI;
         // _setTokenStatus(_tokenInput, _signature);
         statusOf[lastId.current()] = true;
         expirationOf[lastId.current()] = block.timestamp + expiration;
@@ -381,6 +327,8 @@ contract ERC721 is
         address _to,
         uint256 _amount
     ) external nonReentrant onlyOwner {
+        require(_to != address(0), "Invalid address");
+        require(_amount > 0, "Invalid amount");
         handleTransfer(_msgSender(), _to, _paymentToken, _amount);
         emit Withdrawn(_paymentToken, _to, _amount);
     }
@@ -446,7 +394,6 @@ contract ERC721 is
         address _paymentToken,
         uint256 _amount
     ) private {
-        console.log("alo");
         if (_paymentToken == address(0)) {
             require(_amount <= address(this).balance, "Invalid amount");
             Helper.safeTransferNative(_to, msg.value);
