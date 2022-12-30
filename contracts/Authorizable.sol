@@ -30,14 +30,6 @@ abstract contract Authorizable is IAuthorizable, OwnableUpgradeable {
         _;
     }
 
-    modifier onlyOwnerOrAdmin() {
-        require(
-            _msgSender() == admin || _msgSender() == owner(),
-            "Ownable: Caller is not owner or admin"
-        );
-        _;
-    }
-
     /**
      * @notice Set address to an admin
      * @param _account Account address that want to set

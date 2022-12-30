@@ -55,6 +55,11 @@ contract ERC721 is
     mapping(uint256 => string) private _tokenURIs;
 
     /**
+     * @notice Mapping signature to token ID
+     */
+    mapping(bytes => uint256) public tokenIdOf;
+
+    /**
      * @notice Emit event when contract is deployed
      */
     event Deployed(address indexed owner, string tokenName, string symbol);
@@ -300,6 +305,7 @@ contract ERC721 is
         statusOf[lastId.current()] = true;
         expirationOf[lastId.current()] = block.timestamp + expiration;
         ownerBalanceOf[_tokenInput.paymentToken][_to] += _tokenInput.amount;
+        tokenIdOf[_signature] = lastId.current();
         if (_tokenInput.paymentToken != address(0)) {
             handleTransfer(
                 _msgSender(),
@@ -371,7 +377,11 @@ contract ERC721 is
      *  Emit event {Transfer(from, to, tokenId)}
      */
     function transfer(address _to, uint256 _tokenId) external {
-        require(_to != address(0), "Invalid address");
+        require(_msgSender() != _to, "Transfer to yourself");
+        require(
+            _exists(_tokenId),
+            "ERC721Metadata: URI query for nonexistent token."
+        );
         require(statusOf[_tokenId], "Token is deactive");
         expirationOf[_tokenId] = block.timestamp + expiration;
         safeTransferFrom(_msgSender(), _to, _tokenId);
