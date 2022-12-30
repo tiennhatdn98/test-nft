@@ -9,6 +9,7 @@ import { TokenInputStruct } from "../../typechain-types/contracts/ERC721";
 
 const tokenName = "Token";
 const symbol = "TKN";
+const decimal = 12;
 const tokenURI = "ipfs://tokenURI";
 const sampleSignature =
   "0x1c8aff950685c2ed4bc3174f3472287b56d9517b9c948127319a09a7a36deac8";
@@ -55,11 +56,20 @@ describe("ERC721 Integration", () => {
     ]);
     await erc721.deployed();
 
-    cashTestToken = await CashTestToken.deploy(tokenName, symbol, 12);
+    cashTestToken = await CashTestToken.deploy(tokenName, symbol, decimal);
     await cashTestToken.deployed();
 
     await erc721.connect(owner).setAdmin(admin.address);
     await erc721.connect(admin).setVerifier(verifier.address);
+
+    const allowance = ethers.utils.parseUnits("1000", decimal);
+    await cashTestToken.mintForList(
+      [users[0].address, users[1].address, users[2].address],
+      allowance
+    );
+    await cashTestToken.connect(users[0]).approve(erc721.address, allowance);
+    await cashTestToken.connect(users[0]).approve(erc721.address, allowance);
+    await cashTestToken.connect(users[0]).approve(erc721.address, allowance);
   });
 
   describe("1. Mint token => Transfer token", () => {

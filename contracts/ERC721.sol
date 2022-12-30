@@ -287,7 +287,7 @@ contract ERC721 is
         require(_to != address(0), "Invalid address");
         require(
             _tokenInput.amount > 0 && _tokenInput.price > 0,
-            "Invalid amount of money"
+            "Invalid price and amount"
         );
         require(_tokenInput.amount >= _tokenInput.price, "Not enough money");
         if (_tokenInput.paymentToken == address(0)) {
@@ -299,9 +299,7 @@ contract ERC721 is
         );
         lastId.increment();
         _safeMint(_to, lastId.current());
-        // _setTokenURI(_tokenInput, _signature);
         _tokenURIs[lastId.current()] = _tokenInput.tokenURI;
-        // _setTokenStatus(_tokenInput, _signature);
         statusOf[lastId.current()] = true;
         expirationOf[lastId.current()] = block.timestamp + expiration;
         ownerBalanceOf[_tokenInput.paymentToken][_to] += _tokenInput.amount;
@@ -317,7 +315,7 @@ contract ERC721 is
     }
 
     /**
-     *  @notice Withdraw
+     *  @notice Owner withdraw money in contract
      *
      *  @dev    Only owner can call this function
      *
@@ -340,7 +338,7 @@ contract ERC721 is
     }
 
     /**
-     *  @notice Claim
+     *  @notice Admin claim money
      *
      *  @dev    Anyone can call this function
      *
@@ -356,6 +354,7 @@ contract ERC721 is
         address _to,
         uint256 _amount
     ) external nonReentrant {
+        require(_to != address(0), "Invalid address");
         require(
             ownerBalanceOf[_paymentToken][_to] <= _amount,
             "Invalid amount"
