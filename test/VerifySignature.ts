@@ -54,10 +54,12 @@ describe("VerifySignature", () => {
       await verifySignature.recoverSigner(ethHash, sig)
     );
 
+    // Check correct hash
     expect(
       await verifySignature.verify(signer.address, tokenInput1, sig)
     ).to.be.equal(true);
 
+    // Check wrong hash
     expect(
       await verifySignature.verify(signer.address, tokenInput2, sig)
     ).to.be.equal(false);

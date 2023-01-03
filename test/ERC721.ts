@@ -1,6 +1,5 @@
 import { TokenInputStruct } from "./../typechain-types/contracts/ERC721";
-import { upgrades } from "hardhat";
-import hre from "hardhat";
+import { ethers, upgrades } from "hardhat";
 import { expect } from "chai";
 import { ZERO_ADDRESS } from "@openzeppelin/test-helpers/src/constants";
 import { BigNumber, Contract } from "ethers";
@@ -73,11 +72,11 @@ describe("ERC721", () => {
   };
 
   beforeEach(async () => {
-    const ERC721 = await hre.ethers.getContractFactory("ERC721");
-    const CashTestToken = await hre.ethers.getContractFactory("CashTestToken");
+    const ERC721 = await ethers.getContractFactory("ERC721");
+    const CashTestToken = await ethers.getContractFactory("CashTestToken");
 
     const [_owner, _admin, _verifier, _royaltyReceiver, ..._users] =
-      await hre.ethers.getSigners();
+      await ethers.getSigners();
     owner = _owner;
     admin = _admin;
     verifier = _verifier;

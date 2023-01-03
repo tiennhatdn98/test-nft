@@ -3,7 +3,7 @@ const fs = require("fs");
 require("dotenv").config();
 
 async function main() {
-  //* Get network */
+  // Get network
   const network = await ethers.provider.getNetwork();
   const networkName = network.chainId === 31337 ? "hardhat" : network.name;
 
@@ -13,17 +13,12 @@ async function main() {
   const deployer = addresses[0];
   let gasPriceTotal = 0;
 
-  // Deploy params
-  // const createProjectFee = parseEther(0.02);
-  // const activeProjectFee = parseEther(0.02);
-  // const opFundLimit = parseEther(0.2);
-  // const closeLimit = 100;
+  // Deployed params
+  const tokenName = "Token";
+  const symbol = "TKN";
 
   // Loading contract factory
   const ERC721 = await ethers.getContractFactory("ERC721");
-  const tokenName = "Token";
-  const symbol = "TKN";
-  const baseURI = "ipfs://";
 
   // Deploy contracts
   console.log(
@@ -43,7 +38,6 @@ async function main() {
     process.env.OWNER_WALLET_ADDRESS,
     tokenName,
     symbol,
-    baseURI,
   ]);
   await erc721.deployed();
   console.log("ERC721 deployed to: >>", erc721.address);

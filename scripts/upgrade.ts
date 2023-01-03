@@ -1,11 +1,11 @@
-const { ethers, upgrades } = require("hardhat");
+import { ethers, upgrades } from "hardhat";
 const contracts = require("../contracts.json");
 
 async function main() {
-  //* Loading contract factory */
+  // Loading contract factory
   const ERC721 = await ethers.getContractFactory("ERC721");
 
-  //* Deploy contracts */
+  // Deploy contracts
   console.log(
     "================================================================================"
   );
@@ -14,10 +14,10 @@ async function main() {
     "================================================================================"
   );
 
+  // Upgrade contracts
   // const admin = await upgrades.erc1967.getAdminAddress("address proxy");
   await upgrades.upgradeProxy(contracts.erc721, ERC721);
   console.log("ERC721 is upgraded");
-
   console.log(
     "================================================================================"
   );

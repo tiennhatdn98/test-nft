@@ -18,11 +18,11 @@ How to Sign and Verify
 */
 
 contract VerifySignature {
-    /* 1. Unlock MetaMask account
+	/* 1. Unlock MetaMask account
     ethereum.enable()
     */
 
-    /* 2. Get message hash to sign
+	/* 2. Get message hash to sign
     getMessageHash(
         0x14723A09ACff6D2A60DcdF7aA4AFf308FDDC160C,
         123,
@@ -32,28 +32,28 @@ contract VerifySignature {
 
     hash = "0xcf36ac4f97dc10d91fc2cbb20d718e94a8cbfe0f82eaedc6a4aa38946fb797cd"
     */
-    function getMessageHash(
-        uint256 _tokenId,
-        string memory _tokenURI,
-        address _paymentToken,
-        uint256 _price,
-        uint256 _amount,
-        bool _status
-    ) public pure returns (bytes32) {
-        return
-            keccak256(
-                abi.encodePacked(
-                    _tokenId,
-                    _tokenURI,
-                    _paymentToken,
-                    _price,
-                    _amount,
-                    _status
-                )
-            );
-    }
+	function getMessageHash(
+		uint256 _tokenId,
+		string memory _tokenURI,
+		address _paymentToken,
+		uint256 _price,
+		uint256 _amount,
+		bool _status
+	) public pure returns (bytes32) {
+		return
+			keccak256(
+				abi.encodePacked(
+					_tokenId,
+					_tokenURI,
+					_paymentToken,
+					_price,
+					_amount,
+					_status
+				)
+			);
+	}
 
-    /* 3. Sign message hash
+	/* 3. Sign message hash
     # using browser
     account = "copy paste account of signer here"
     ethereum.request({ method: "personal_sign", params: [account, hash]}).then(console.log)
@@ -64,23 +64,23 @@ contract VerifySignature {
     Signature will be different for different accounts
     0x993dab3dd91f5c6dc28e17439be475478f5635c92a56e17e82349d3fb2f166196f466c0b4e0c146f285204f0dcb13e5ae67bc33f4b888ec32dfe0a063e8f3f781b
     */
-    function getEthSignedMessageHash(
-        bytes32 _messageHash
-    ) public pure returns (bytes32) {
-        /*
+	function getEthSignedMessageHash(
+		bytes32 _messageHash
+	) public pure returns (bytes32) {
+		/*
         Signature is produced by signing a keccak256 hash with the following format:
         "\x19Ethereum Signed Message\n" + len(msg) + msg
         */
-        return
-            keccak256(
-                abi.encodePacked(
-                    "\x19Ethereum Signed Message:\n32",
-                    _messageHash
-                )
-            );
-    }
+		return
+			keccak256(
+				abi.encodePacked(
+					"\x19Ethereum Signed Message:\n32",
+					_messageHash
+				)
+			);
+	}
 
-    /* 4. Verify signature
+	/* 4. Verify signature
     signer = 0xB273216C05A8c0D4F0a4Dd0d7Bae1D2EfFE636dd
     to = 0x14723A09ACff6D2A60DcdF7aA4AFf308FDDC160C
     amount = 123
@@ -89,40 +89,40 @@ contract VerifySignature {
     signature =
         0x993dab3dd91f5c6dc28e17439be475478f5635c92a56e17e82349d3fb2f166196f466c0b4e0c146f285204f0dcb13e5ae67bc33f4b888ec32dfe0a063e8f3f781b
     */
-    function verify(
-        address _signer,
-        TokenInput memory _tokenInput,
-        bytes memory signature
-    ) public pure returns (bool) {
-        bytes32 messageHash = getMessageHash(
-            _tokenInput.tokenId,
-            _tokenInput.tokenURI,
-            _tokenInput.paymentToken,
-            _tokenInput.amount,
-            _tokenInput.price,
-            _tokenInput.status
-        );
-        bytes32 ethSignedMessageHash = getEthSignedMessageHash(messageHash);
+	function verify(
+		address _signer,
+		TokenInput memory _tokenInput,
+		bytes memory signature
+	) public pure returns (bool) {
+		bytes32 messageHash = getMessageHash(
+			_tokenInput.tokenId,
+			_tokenInput.tokenURI,
+			_tokenInput.paymentToken,
+			_tokenInput.amount,
+			_tokenInput.price,
+			_tokenInput.status
+		);
+		bytes32 ethSignedMessageHash = getEthSignedMessageHash(messageHash);
 
-        return recoverSigner(ethSignedMessageHash, signature) == _signer;
-    }
+		return recoverSigner(ethSignedMessageHash, signature) == _signer;
+	}
 
-    function recoverSigner(
-        bytes32 _ethSignedMessageHash,
-        bytes memory _signature
-    ) public pure returns (address) {
-        (bytes32 r, bytes32 s, uint8 v) = splitSignature(_signature);
+	function recoverSigner(
+		bytes32 _ethSignedMessageHash,
+		bytes memory _signature
+	) public pure returns (address) {
+		(bytes32 r, bytes32 s, uint8 v) = splitSignature(_signature);
 
-        return ecrecover(_ethSignedMessageHash, v, r, s);
-    }
+		return ecrecover(_ethSignedMessageHash, v, r, s);
+	}
 
-    function splitSignature(
-        bytes memory sig
-    ) public pure returns (bytes32 r, bytes32 s, uint8 v) {
-        require(sig.length == 65, "invalid signature length");
+	function splitSignature(
+		bytes memory sig
+	) public pure returns (bytes32 r, bytes32 s, uint8 v) {
+		require(sig.length == 65, "invalid signature length");
 
-        assembly {
-            /*
+		assembly {
+			/*
             First 32 bytes stores the length of the signature
 
             add(sig, 32) = pointer of sig + 32
@@ -131,14 +131,14 @@ contract VerifySignature {
             mload(p) loads next 32 bytes starting at the memory address p into memory
             */
 
-            // first 32 bytes, after the length prefix
-            r := mload(add(sig, 32))
-            // second 32 bytes
-            s := mload(add(sig, 64))
-            // final byte (first byte of the next 32 bytes)
-            v := byte(0, mload(add(sig, 96)))
-        }
+			// first 32 bytes, after the length prefix
+			r := mload(add(sig, 32))
+			// second 32 bytes
+			s := mload(add(sig, 64))
+			// final byte (first byte of the next 32 bytes)
+			v := byte(0, mload(add(sig, 96)))
+		}
 
-        // implicitly return (r, s, v)
-    }
+		// implicitly return (r, s, v)
+	}
 }

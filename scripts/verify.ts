@@ -1,10 +1,11 @@
-const { run } = require("hardhat");
+import { run } from "hardhat";
 const contracts = require("../contracts.json");
 
 async function main() {
   const jobs = [
     run("verify:verify", {
       address: contracts.erc721Verify,
+      constructorArguments: [],
     }),
   ];
 
