@@ -32,7 +32,7 @@ abstract contract Authorizable is IAuthorizable, OwnableUpgradeable {
 
 	/**
 	 * @notice Set address to an admin
-	 * @param _account Account address that want to set
+	 * @param _account New amin address that want to set
 	 *
 	 * Emit event {SetAdmin}
 	 */
@@ -45,7 +45,7 @@ abstract contract Authorizable is IAuthorizable, OwnableUpgradeable {
 
 	/**
 	 * @notice Set address to a verifier
-	 * @param _account Account address that want to set
+	 * @param _account New verifier address that want to set
 	 *
 	 * Emit event {SetVerifier}
 	 */

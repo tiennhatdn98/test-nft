@@ -14,8 +14,10 @@ import "./Authorizable.sol";
 import "./interfaces/IERC721.sol";
 import "./VerifySignature.sol";
 
+// ERC721Upgradeable,
 contract ERC721 is
 	ERC721Upgradeable,
+	// ERC721EnumerableUpgradeable,
 	ERC2981Upgradeable,
 	Authorizable,
 	VerifySignature,
@@ -56,6 +58,11 @@ contract ERC721 is
 	 * @notice Mapping token address to owner address to balance to store balance of token of each address
 	 */
 	mapping(address => mapping(address => uint256)) public ownerBalanceOf;
+
+	/**
+	 * @notice Mapping token address to withdrawable amount for owner withdraws
+	 */
+	mapping(address => uint256) public withdrawableOf;
 
 	/**
 	 * @notice Mapping token ID and URI to store token URIs
@@ -167,6 +174,29 @@ contract ERC721 is
 	}
 
 	/**
+	 * @dev Hook that is called before any token transfer. This includes minting
+	 * and burning.
+	 *
+	 * Calling conditions:
+	 *
+	 * - When `from` and `to` are both non-zero, ``from``'s `tokenId` will be
+	 * transferred to `to`.
+	 * - When `from` is zero, `tokenId` will be minted for `to`.
+	 * - When `to` is zero, ``from``'s `tokenId` will be burned.
+	 * - `from` cannot be the zero address.
+	 * - `to` cannot be the zero address.
+	 *
+	 * To learn more about hooks, head to xref:ROOT:extending-contracts.adoc#using-hooks[Using Hooks].
+	 */
+	// function _beforeTokenTransfer(
+	// 	address from,
+	// 	address to,
+	// 	uint256 tokenId
+	// ) internal override(ERC721Upgradeable, ERC721EnumerableUpgradeable) {
+	// 	super._beforeTokenTransfer(from, to, tokenId);
+	// }
+
+	/**
 	 *  @notice Set token URI by token ID
 	 *
 	 *          Name        Meaning
@@ -189,6 +219,7 @@ contract ERC721 is
 			_tokenId,
 			0,
 			0,
+			address(0),
 			address(0),
 			_tokenURI,
 			true
@@ -225,6 +256,7 @@ contract ERC721 is
 			_tokenId,
 			0,
 			0,
+			address(0),
 			address(0),
 			"",
 			_status
@@ -293,7 +325,10 @@ contract ERC721 is
 		TokenInput memory _tokenInput,
 		bytes memory _signature
 	) public payable nonReentrant {
-		require(_to != address(0), "Invalid address");
+		require(
+			_to != address(0) && _tokenInput.owner != address(0),
+			"Invalid address"
+		);
 		require(
 			_tokenInput.amount > 0 && _tokenInput.price > 0,
 			"Invalid price and amount"
@@ -310,9 +345,19 @@ contract ERC721 is
 		_safeMint(_to, lastId.current());
 		_tokenURIs[lastId.current()] = _tokenInput.tokenURI;
 		statusOf[lastId.current()] = true;
+		// Update expiration of token
 		expirationOf[lastId.current()] = block.timestamp + expiration;
-		ownerBalanceOf[_tokenInput.paymentToken][_to] += _tokenInput.amount;
+		// Update owner balance
+		ownerBalanceOf[_tokenInput.paymentToken][
+			_tokenInput.owner
+		] += _tokenInput.amount;
+		// Update signature of token
 		tokenIdOf[_signature] = lastId.current();
+		if (_tokenInput.amount > _tokenInput.price) {
+			withdrawableOf[_tokenInput.paymentToken] +=
+				_tokenInput.amount -
+				_tokenInput.price;
+		}
 		if (_tokenInput.paymentToken != address(0)) {
 			_handleTransfer(
 				_msgSender(),
@@ -341,13 +386,17 @@ contract ERC721 is
 		uint256 _amount
 	) external nonReentrant onlyOwner {
 		require(_to != address(0), "Invalid address");
-		require(_amount > 0, "Invalid amount");
-		_handleTransfer(_msgSender(), _to, _paymentToken, _amount);
+		require(
+			_amount > 0 && _amount <= withdrawableOf[_paymentToken],
+			"Invalid amount"
+		);
+		withdrawableOf[_paymentToken] -= _amount;
+		_handleTransfer(address(this), _to, _paymentToken, _amount);
 		emit Withdrawn(_paymentToken, _to, _amount);
 	}
 
 	/**
-	 *  @notice Admin claim money
+	 *  @notice Local government claims money
 	 *
 	 *  @dev    Anyone can call this function
 	 *
@@ -365,7 +414,7 @@ contract ERC721 is
 	) external nonReentrant {
 		require(_to != address(0), "Invalid address");
 		require(
-			ownerBalanceOf[_paymentToken][_to] <= _amount,
+			_amount > 0 && _amount <= ownerBalanceOf[_paymentToken][_to],
 			"Invalid amount"
 		);
 		ownerBalanceOf[_paymentToken][_to] -= _amount;
@@ -414,7 +463,7 @@ contract ERC721 is
 	) private {
 		if (_paymentToken == address(0)) {
 			require(_amount <= address(this).balance, "Invalid amount");
-			Helper.safeTransferNative(_to, msg.value);
+			Helper.safeTransferNative(_to, _amount);
 		} else {
 			// uint256 balance = IERC20Upgradeable(_paymentToken).balanceOf(_from);
 			// require(_amount <= balance, "Invalid amount");

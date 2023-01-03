@@ -2,17 +2,16 @@ import { upgrades } from "hardhat";
 import { ethers } from "hardhat";
 import hre from "hardhat";
 import { expect } from "chai";
-import { ZERO_ADDRESS } from "@openzeppelin/test-helpers/src/constants";
-import { BigNumber, Contract } from "ethers";
+import { Contract } from "ethers";
 import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
 import { TokenInputStruct } from "../../typechain-types/contracts/ERC721";
 
+const { ZERO_ADDRESS } = require("@openzeppelin/test-helpers/src/constants");
 const tokenName = "Token";
 const symbol = "TKN";
 const decimal = 12;
-const tokenURI = "ipfs://tokenURI";
 const sampleSignature =
-  "0x1c8aff950685c2ed4bc3174f3472287b56d9517b9c948127319a09a7a36deac8";
+  "0xe061bcd7ddefb1dbef4bb6e16bc0fc8f5c1edebbd3a94c3e7bfafae9966fae5936458df7c8cc4bf664641978b79d915c95db6907057f2bfe9610a323a2dad7281c";
 const YEAR_TO_SECONDS = 31_556_926;
 const NONEXISTENT_TOKEN_ID = 9999;
 const royaltyPercentage = 10;
@@ -25,7 +24,6 @@ describe("ERC721 Integration", () => {
   let verifier: SignerWithAddress;
   let royaltyReceiver: SignerWithAddress;
   let users: SignerWithAddress[];
-  let expiration: BigNumber;
   let tokenInput: TokenInputStruct = {
     tokenId: 0,
     tokenURI: "",

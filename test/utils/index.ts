@@ -1,4 +1,3 @@
-const { ZERO_ADDRESS } = require("@openzeppelin/test-helpers/src/constants");
 import { BigNumber } from "ethers";
 import hre from "hardhat";
 import { ethers } from "hardhat";
@@ -16,4 +15,4 @@ const skipTime = async (seconds: number) => {
   await hre.network.provider.send("evm_mine");
 };
 
-export { blockTimestamp, skipTime };
+export { blockTimestamp, skipTime, weiToEther };

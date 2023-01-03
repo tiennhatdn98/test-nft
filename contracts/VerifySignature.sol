@@ -38,6 +38,7 @@ contract VerifySignature {
 		address _paymentToken,
 		uint256 _price,
 		uint256 _amount,
+		address _owner,
 		bool _status
 	) public pure returns (bytes32) {
 		return
@@ -48,6 +49,7 @@ contract VerifySignature {
 					_paymentToken,
 					_price,
 					_amount,
+					_owner,
 					_status
 				)
 			);
@@ -100,6 +102,7 @@ contract VerifySignature {
 			_tokenInput.paymentToken,
 			_tokenInput.amount,
 			_tokenInput.price,
+			_tokenInput.owner,
 			_tokenInput.status
 		);
 		bytes32 ethSignedMessageHash = getEthSignedMessageHash(messageHash);
