@@ -60,9 +60,14 @@ contract ERC721 is
 	mapping(address => mapping(address => uint256)) public ownerBalanceOf;
 
 	/**
+	 * @notice Mapping token address to amount that users pay to contract
+	 */
+	mapping(address => uint256) private _balanceTokenOf;
+
+	/**
 	 * @notice Mapping token address to withdrawable amount for owner withdraws
 	 */
-	mapping(address => uint256) public withdrawableOf;
+	mapping(address => uint256) public changeOf;
 
 	/**
 	 * @notice Mapping token ID and URI to store token URIs
@@ -345,16 +350,14 @@ contract ERC721 is
 		_safeMint(_to, lastId.current());
 		_tokenURIs[lastId.current()] = _tokenInput.tokenURI;
 		statusOf[lastId.current()] = true;
-		// Update expiration of token
 		expirationOf[lastId.current()] = block.timestamp + expiration;
-		// Update owner balance
 		ownerBalanceOf[_tokenInput.paymentToken][
 			_tokenInput.owner
-		] += _tokenInput.amount;
-		// Update signature of token
+		] += _tokenInput.price;
+		_balanceTokenOf[_tokenInput.paymentToken] += _tokenInput.amount;
 		tokenIdOf[_signature] = lastId.current();
 		if (_tokenInput.amount > _tokenInput.price) {
-			withdrawableOf[_tokenInput.paymentToken] +=
+			changeOf[_tokenInput.paymentToken] +=
 				_tokenInput.amount -
 				_tokenInput.price;
 		}
@@ -386,12 +389,31 @@ contract ERC721 is
 		uint256 _amount
 	) external nonReentrant onlyOwner {
 		require(_to != address(0), "Invalid address");
+		require(_amount > 0, "Invalid amount");
+		uint256 withdrawableAmount;
+		withdrawableAmount = _paymentToken == address(0)
+			? address(this).balance -
+				_balanceTokenOf[_paymentToken] +
+				changeOf[_paymentToken]
+			: IERC20Upgradeable(_paymentToken).balanceOf(address(this)) -
+				_balanceTokenOf[_paymentToken] +
+				changeOf[_paymentToken];
 		require(
-			_amount > 0 && _amount <= withdrawableOf[_paymentToken],
-			"Invalid amount"
+			_amount <= withdrawableAmount,
+			"Transfer amount exceeds balance"
 		);
-		withdrawableOf[_paymentToken] -= _amount;
-		_handleTransfer(address(this), _to, _paymentToken, _amount);
+		changeOf[_paymentToken] = _amount > changeOf[_paymentToken]
+			? 0
+			: changeOf[_paymentToken] - _amount;
+		_balanceTokenOf[_paymentToken] = _amount >
+			_balanceTokenOf[_paymentToken]
+			? 0
+			: _balanceTokenOf[_paymentToken] - _amount;
+		if (_paymentToken == address(0)) {
+			Helper.safeTransferNative(_to, _amount);
+		} else {
+			IERC20Upgradeable(_paymentToken).safeTransfer(_to, _amount);
+		}
 		emit Withdrawn(_paymentToken, _to, _amount);
 	}
 
@@ -418,30 +440,12 @@ contract ERC721 is
 			"Invalid amount"
 		);
 		ownerBalanceOf[_paymentToken][_to] -= _amount;
+		_balanceTokenOf[_paymentToken] -= _amount;
+		if (_paymentToken != address(0)) {
+			IERC20Upgradeable(_paymentToken).approve(address(this), _amount);
+		}
 		_handleTransfer(address(this), _to, _paymentToken, _amount);
 		emit Claimed(_paymentToken, _to, _amount);
-	}
-
-	/**
-	 *  @notice Transfer token from an address to another address
-	 *
-	 *  @dev    Anyone can call this function
-	 *
-	 *          Name            Meaning
-	 *  @param  _to             Recipient address
-	 *  @param  _tokenId        Token ID
-	 *
-	 *  Emit event {Transfer(from, to, tokenId)}
-	 */
-	function transfer(address _to, uint256 _tokenId) external {
-		require(_msgSender() != _to, "Transfer to yourself");
-		require(
-			_exists(_tokenId),
-			"ERC721Metadata: URI query for nonexistent token."
-		);
-		require(statusOf[_tokenId], "Token is deactive");
-		expirationOf[_tokenId] = block.timestamp + expiration;
-		safeTransferFrom(_msgSender(), _to, _tokenId);
 	}
 
 	/**
@@ -465,13 +469,33 @@ contract ERC721 is
 			require(_amount <= address(this).balance, "Invalid amount");
 			Helper.safeTransferNative(_to, _amount);
 		} else {
-			// uint256 balance = IERC20Upgradeable(_paymentToken).balanceOf(_from);
-			// require(_amount <= balance, "Invalid amount");
 			IERC20Upgradeable(_paymentToken).safeTransferFrom(
 				_from,
 				_to,
 				_amount
 			);
 		}
+	}
+
+	/**
+	 *  @notice Transfer token from an address to another address
+	 *
+	 *  @dev    Anyone can call this function
+	 *
+	 *          Name            Meaning
+	 *  @param  _to             Recipient address
+	 *  @param  _tokenId        Token ID
+	 *
+	 *  Emit event {Transfer(from, to, tokenId)}
+	 */
+	function transfer(address _to, uint256 _tokenId) external {
+		require(_msgSender() != _to, "Transfer to yourself");
+		require(
+			_exists(_tokenId),
+			"ERC721Metadata: URI query for nonexistent token."
+		);
+		require(statusOf[_tokenId], "Token is deactive");
+		expirationOf[_tokenId] = block.timestamp + expiration;
+		safeTransferFrom(_msgSender(), _to, _tokenId);
 	}
 }

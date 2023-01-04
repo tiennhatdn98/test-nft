@@ -100,8 +100,8 @@ contract VerifySignature {
 			_tokenInput.tokenId,
 			_tokenInput.tokenURI,
 			_tokenInput.paymentToken,
-			_tokenInput.amount,
 			_tokenInput.price,
+			_tokenInput.amount,
 			_tokenInput.owner,
 			_tokenInput.status
 		);

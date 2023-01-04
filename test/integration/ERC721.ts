@@ -1,15 +1,16 @@
 import { upgrades } from "hardhat";
 import { ethers } from "hardhat";
-import hre from "hardhat";
 import { expect } from "chai";
-import { Contract } from "ethers";
+import { BigNumber, Contract } from "ethers";
 import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
 import { TokenInputStruct } from "../../typechain-types/contracts/ERC721";
 
-const { ZERO_ADDRESS } = require("@openzeppelin/test-helpers/src/constants");
+const { AddressZero, MaxUint256 } = require("@ethersproject/constants");
+const ZERO_ADDRESS = AddressZero;
+const MAX_UINT256 = MaxUint256;
 const tokenName = "Token";
 const symbol = "TKN";
-const decimal = 12;
+const decimal = 6;
 const sampleSignature =
   "0xe061bcd7ddefb1dbef4bb6e16bc0fc8f5c1edebbd3a94c3e7bfafae9966fae5936458df7c8cc4bf664641978b79d915c95db6907057f2bfe9610a323a2dad7281c";
 const YEAR_TO_SECONDS = 31_556_926;
@@ -23,26 +24,46 @@ describe("ERC721 Integration", () => {
   let admin: SignerWithAddress;
   let verifier: SignerWithAddress;
   let royaltyReceiver: SignerWithAddress;
+  let government: SignerWithAddress;
   let users: SignerWithAddress[];
-  let tokenInput: TokenInputStruct = {
-    tokenId: 0,
-    tokenURI: "",
-    paymentToken: ZERO_ADDRESS,
-    amount: 0,
-    price: 0,
-    status: true,
+  let expiration: BigNumber;
+  let tokenId: BigNumber;
+  let tokenInput: TokenInputStruct;
+
+  const resetTokenInput = () => {
+    tokenInput = {
+      tokenId: 0,
+      tokenURI: "",
+      paymentToken: ZERO_ADDRESS,
+      amount: 0,
+      price: 0,
+      owner: ZERO_ADDRESS,
+      status: true,
+    };
+  };
+
+  const getSignature = async (
+    tokenInput: TokenInputStruct,
+    signer: SignerWithAddress
+  ): Promise<string> => {
+    const hash = await erc721.getMessageHash(
+      tokenInput.tokenId,
+      tokenInput.tokenURI,
+      tokenInput.paymentToken,
+      tokenInput.price,
+      tokenInput.amount,
+      tokenInput.owner,
+      tokenInput.status
+    );
+    const signature = await signer.signMessage(ethers.utils.arrayify(hash));
+    return signature;
   };
 
   beforeEach(async () => {
-    const ERC721 = await hre.ethers.getContractFactory("ERC721");
-    const CashTestToken = await hre.ethers.getContractFactory("CashTestToken");
-    const [_owner, _admin, _verifier, _royaltyReceiver, ..._users] =
-      await hre.ethers.getSigners();
-    owner = _owner;
-    admin = _admin;
-    verifier = _verifier;
-    users = _users;
-    royaltyReceiver = _royaltyReceiver;
+    const ERC721 = await ethers.getContractFactory("ERC721");
+    const CashTestToken = await ethers.getContractFactory("CashTestToken");
+    [owner, admin, verifier, royaltyReceiver, government, ...users] =
+      await ethers.getSigners();
 
     erc721 = await upgrades.deployProxy(ERC721, [
       owner.address,
@@ -60,14 +81,15 @@ describe("ERC721 Integration", () => {
     await erc721.connect(owner).setAdmin(admin.address);
     await erc721.connect(admin).setVerifier(verifier.address);
 
-    const allowance = ethers.utils.parseUnits("1000", decimal);
-    await cashTestToken.mintForList(
-      [users[0].address, users[1].address, users[2].address],
-      allowance
-    );
-    await cashTestToken.connect(users[0]).approve(erc721.address, allowance);
-    await cashTestToken.connect(users[0]).approve(erc721.address, allowance);
-    await cashTestToken.connect(users[0]).approve(erc721.address, allowance);
+    const allowance = ethers.utils.parseUnits("1000000000", decimal);
+    await cashTestToken.mintFor(users[0].address, allowance);
+    await cashTestToken.mintFor(users[1].address, allowance);
+    await cashTestToken.mintFor(users[2].address, allowance);
+
+    await cashTestToken.connect(users[0]).approve(erc721.address, MAX_UINT256);
+    await cashTestToken.connect(users[1]).approve(erc721.address, MAX_UINT256);
+    await cashTestToken.connect(users[2]).approve(erc721.address, MAX_UINT256);
+    resetTokenInput();
   });
 
   describe("1. Mint token => Transfer token", () => {
@@ -76,23 +98,21 @@ describe("ERC721 Integration", () => {
       tokenInput.tokenURI = "ipfs://1.json";
       tokenInput.price = ethers.utils.parseEther("1");
       tokenInput.amount = ethers.utils.parseEther("1");
-      const hash = await erc721.getMessageHash(
-        tokenInput.tokenId,
-        tokenInput.tokenURI,
-        tokenInput.paymentToken,
-        tokenInput.price,
-        tokenInput.amount,
-        tokenInput.status
-      );
-      let signature = verifier.signMessage(ethers.utils.arrayify(hash));
-
+      tokenInput.owner = government.address;
+      const signature = await getSignature(tokenInput, verifier);
       await erc721.mint(users[0].address, tokenInput, signature, {
         value: ethers.utils.parseEther("1"),
       });
 
       // Transfer token
       let tokenId = await erc721.lastId();
-      await erc721.connect(users[0]).transfer(users[1].address, tokenId);
+      await expect(
+        erc721.connect(users[0]).transfer(users[1].address, tokenId)
+      ).changeTokenBalances(
+        erc721,
+        [users[0].address, users[1].address],
+        [-1, 1]
+      );
       expect(await erc721.ownerOf(tokenId)).to.be.equal(users[1].address);
     });
   });
