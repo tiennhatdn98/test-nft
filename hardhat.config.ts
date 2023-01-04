@@ -11,6 +11,12 @@ const SYSTEM_PRIVATE_KEY = process.env.SYSTEM_PRIVATE_KEY || "1".repeat(64);
 const config: HardhatUserConfig = {
   solidity: {
     version: "0.8.17",
+    compilers: [
+      {
+        version: "0.8.17",
+        settings: { optimizer: { enabled: true, runs: 200 } },
+      },
+    ],
     settings: {
       optimizer: {
         enabled: true,
@@ -18,7 +24,9 @@ const config: HardhatUserConfig = {
       },
     },
   },
+  defaultNetwork: "hardhat",
   networks: {
+    hardhat: { accounts: { count: 100 } },
     // Mainnet
     binance: {
       url: BINANCE_MAINNET_RPC,
@@ -34,6 +42,12 @@ const config: HardhatUserConfig = {
     apiKey: {
       bscTestnet: process.env.BINANCE_API_KEY || "",
     },
+  },
+  mocha: {
+    timeout: 200000,
+    // useColors: true,
+    reporter: "mocha-multi-reporters",
+    reporterOptions: { configFile: "./mocha-report.json" },
   },
 };
 

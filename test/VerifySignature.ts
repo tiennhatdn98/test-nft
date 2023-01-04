@@ -1,9 +1,11 @@
 import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
-import { ZERO_ADDRESS } from "@openzeppelin/test-helpers/src/constants";
 import { expect } from "chai";
 import { Contract } from "ethers";
 import { ethers } from "hardhat";
 import { TokenInputStruct } from "../typechain-types/contracts/ERC721";
+
+const { AddressZero, MaxUint256 } = require("@ethersproject/constants");
+const ZERO_ADDRESS = AddressZero;
 
 describe("VerifySignature", () => {
   let verifySignature: Contract;
@@ -16,8 +18,7 @@ describe("VerifySignature", () => {
   });
 
   it("Check signature", async () => {
-    const [_signer, ..._users] = await ethers.getSigners();
-    signer = _signer;
+    [signer] = await ethers.getSigners();
 
     let tokenInput1: TokenInputStruct = {
       tokenId: 0,
@@ -26,6 +27,7 @@ describe("VerifySignature", () => {
       paymentToken: ZERO_ADDRESS,
       amount: ethers.utils.parseEther("1"),
       price: ethers.utils.parseEther("1"),
+      owner: ZERO_ADDRESS,
     };
 
     let tokenInput2: TokenInputStruct = {
@@ -35,6 +37,7 @@ describe("VerifySignature", () => {
       paymentToken: ZERO_ADDRESS,
       amount: ethers.utils.parseEther("1"),
       price: ethers.utils.parseEther("1"),
+      owner: ZERO_ADDRESS,
     };
 
     const hash = await verifySignature.getMessageHash(
@@ -43,6 +46,7 @@ describe("VerifySignature", () => {
       tokenInput1.paymentToken,
       tokenInput1.price,
       tokenInput1.amount,
+      tokenInput1.owner,
       tokenInput1.status
     );
     const sig = await signer.signMessage(ethers.utils.arrayify(hash));
