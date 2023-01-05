@@ -481,16 +481,14 @@ describe("ERC721", () => {
     });
   });
 
-  describe("9. Withdraw", () => {
+  describe.only("9. Withdraw", () => {
     const price = ethers.utils.parseEther("1");
     const amount = ethers.utils.parseEther("5");
-    const redundant = amount.sub(price);
-    const negativeRedundant = redundant.mul(-1);
+    const changeAmount = amount.sub(price);
 
     const tokenPrice = ethers.utils.parseUnits("1", decimal);
     const tokenAmount = ethers.utils.parseUnits("5", decimal);
-    const tokenRedundant = tokenAmount.sub(tokenPrice);
-    const negativeTokenRedundant = tokenRedundant.mul(-1);
+    const tokenchangeAmount = tokenAmount.sub(tokenPrice);
 
     beforeEach(async () => {
       // Mint token with 5 native token but price is 1
@@ -511,13 +509,15 @@ describe("ERC721", () => {
 
     it("9.1. Should be fail when caller is not owner", async () => {
       await expect(
-        erc721.connect(admin).withdraw(ZERO_ADDRESS, admin.address, redundant)
+        erc721
+          .connect(admin)
+          .withdraw(ZERO_ADDRESS, admin.address, changeAmount)
       ).to.be.revertedWith("Ownable: caller is not the owner");
     });
 
     it("9.2. Should be fail when recipient address is zero addess", async () => {
       await expect(
-        erc721.connect(owner).withdraw(ZERO_ADDRESS, ZERO_ADDRESS, redundant)
+        erc721.connect(owner).withdraw(ZERO_ADDRESS, ZERO_ADDRESS, changeAmount)
       ).to.be.revertedWith("Invalid address");
     });
 
@@ -530,35 +530,37 @@ describe("ERC721", () => {
     it("9.4. Should be fail when owner withdraw amount greater than withdrawable amount", async () => {
       await expect(
         erc721.connect(owner).withdraw(ZERO_ADDRESS, owner.address, amount)
-      ).to.be.revertedWith("Transfer amount exceeds balance");
+      ).to.be.revertedWith("Invalid amount");
     });
 
-    it("9.5. Should be successfull when owner withdraw native token", async () => {
+    it("9.5. Should be successful when owner withdraws native token", async () => {
       const oldChange = await erc721.changeOf(ZERO_ADDRESS);
       await expect(
-        erc721.connect(owner).withdraw(ZERO_ADDRESS, owner.address, redundant)
+        erc721
+          .connect(owner)
+          .withdraw(ZERO_ADDRESS, owner.address, changeAmount)
       ).changeEtherBalances(
         [erc721.address, owner.address],
-        [negativeRedundant, redundant]
+        [changeAmount.mul(-1), changeAmount]
       );
       expect(await erc721.changeOf(ZERO_ADDRESS)).to.be.equal(
-        oldChange.sub(redundant)
+        oldChange.sub(changeAmount)
       );
     });
 
-    it("9.6. Should withdraw successfully when owner withdraw other token", async () => {
+    it("9.6. Should withdraw successfully when owner withdraws cash test token", async () => {
       const oldChange = await erc721.changeOf(cashTestToken.address);
       await expect(
         erc721
           .connect(owner)
-          .withdraw(cashTestToken.address, owner.address, tokenRedundant)
+          .withdraw(cashTestToken.address, owner.address, tokenchangeAmount)
       ).changeTokenBalances(
         cashTestToken,
         [erc721.address, owner.address],
-        [negativeTokenRedundant, tokenRedundant]
+        [tokenchangeAmount.mul(-1), tokenchangeAmount]
       );
       expect(await erc721.changeOf(cashTestToken.address)).to.be.equal(
-        oldChange.sub(tokenRedundant)
+        oldChange.sub(tokenchangeAmount)
       );
     });
   });

@@ -5,7 +5,8 @@
     "test-coverage": "npx hardhat coverage --testfiles test/*.ts",
     "test-integration": "npx hardhat test test/integration/*.ts",
     "deploy-binance-testnet": "npx hardhat run scripts/deploy.ts --network binance_testnet",
-    "deploy-binance-mainnet": "npx hardhat run scripts/deploy.ts --network binance"
+    "deploy-binance-mainnet": "npx hardhat run scripts/deploy.ts --network binance",
+    "size-contracts": "npx hardhat size-contracts"
   },
   "devDependencies": {
     "@ethersproject/abi": "^5.7.0",
@@ -35,6 +36,7 @@
     "@openzeppelin/contracts-upgradeable": "^4.8.0",
     "@openzeppelin/hardhat-upgrades": "^1.22.0",
     "dotenv": "^16.0.3",
+    "hardhat-contract-sizer": "^2.6.1",
     "mocha-junit-reporter": "^2.2.0",
     "mocha-multi-reporters": "^1.5.1",
     "solhint": "^3.3.7"

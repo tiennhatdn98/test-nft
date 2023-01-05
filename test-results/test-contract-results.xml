@@ -1,11 +1,21 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<testsuites name="Mocha Tests" time="4.187" tests="1" failures="0">
-  <testsuite name="Root Suite" timestamp="2023-01-05T03:41:44" tests="0" time="0.000" failures="0">
+<testsuites name="Mocha Tests" time="5.161" tests="6" failures="0">
+  <testsuite name="Root Suite" timestamp="2023-01-05T04:21:45" tests="0" time="0.000" failures="0">
   </testsuite>
-  <testsuite name="ERC721 Integration" timestamp="2023-01-05T03:41:44" tests="0" file="/home/nhat-truong/Projects/test-nft/test/integration/ERC721.ts" time="0.000" failures="0">
+  <testsuite name="ERC721" timestamp="2023-01-05T04:21:45" tests="0" file="/home/nhat-truong/Projects/test-nft/test/ERC721.ts" time="0.000" failures="0">
   </testsuite>
-  <testsuite name="1. Mint token by paying native token =&gt; Transfer token =&gt; Local government claims =&gt; Owner of contract withdraws" timestamp="2023-01-05T03:41:44" tests="1" file="/home/nhat-truong/Projects/test-nft/test/integration/ERC721.ts" time="4.185" failures="0">
-    <testcase name="ERC721 Integration 1. Mint token by paying native token =&gt; Transfer token =&gt; Local government claims =&gt; Owner of contract withdraws 1.1. Should be successfull" time="0.254" classname="1.1. Should be successfull">
+  <testsuite name="9. Withdraw" timestamp="2023-01-05T04:21:45" tests="6" file="/home/nhat-truong/Projects/test-nft/test/ERC721.ts" time="5.070" failures="0">
+    <testcase name="ERC721 9. Withdraw 9.1. Should be fail when caller is not owner" time="0.024" classname="9.1. Should be fail when caller is not owner">
+    </testcase>
+    <testcase name="ERC721 9. Withdraw 9.2. Should be fail when recipient address is zero addess" time="0.018" classname="9.2. Should be fail when recipient address is zero addess">
+    </testcase>
+    <testcase name="ERC721 9. Withdraw 9.3. Should be fail when amount is equal 0" time="0.014" classname="9.3. Should be fail when amount is equal 0">
+    </testcase>
+    <testcase name="ERC721 9. Withdraw 9.4. Should be fail when owner withdraw amount greater than withdrawable amount" time="0.019" classname="9.4. Should be fail when owner withdraw amount greater than withdrawable amount">
+    </testcase>
+    <testcase name="ERC721 9. Withdraw 9.5. Should be successful when owner withdraws native token" time="0.041" classname="9.5. Should be successful when owner withdraws native token">
+    </testcase>
+    <testcase name="ERC721 9. Withdraw 9.6. Should withdraw successfully when owner withdraws cash test token" time="0.061" classname="9.6. Should withdraw successfully when owner withdraws cash test token">
     </testcase>
   </testsuite>
 </testsuites>

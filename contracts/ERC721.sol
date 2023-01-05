@@ -59,11 +59,6 @@ contract ERC721 is
 	mapping(address => mapping(address => uint256)) public ownerBalanceOf;
 
 	/**
-	 * @notice Mapping token address to amount that users pay to contract
-	 */
-	mapping(address => uint256) private _balanceTokenOf;
-
-	/**
 	 * @notice Mapping token address to withdrawable amount for owner withdraws
 	 */
 	mapping(address => uint256) public changeOf;
@@ -353,7 +348,6 @@ contract ERC721 is
 		ownerBalanceOf[_tokenInput.paymentToken][
 			_tokenInput.owner
 		] += _tokenInput.price;
-		_balanceTokenOf[_tokenInput.paymentToken] += _tokenInput.amount;
 		tokenIdOf[_signature] = lastId.current();
 		if (_tokenInput.amount > _tokenInput.price) {
 			changeOf[_tokenInput.paymentToken] +=
@@ -388,31 +382,14 @@ contract ERC721 is
 		uint256 _amount
 	) external nonReentrant onlyOwner {
 		require(_to != address(0), "Invalid address");
-		require(_amount > 0, "Invalid amount");
-		uint256 withdrawableAmount;
-		withdrawableAmount = _paymentToken == address(0)
-			? address(this).balance -
-				_balanceTokenOf[_paymentToken] +
-				changeOf[_paymentToken]
-			: IERC20Upgradeable(_paymentToken).balanceOf(address(this)) -
-				_balanceTokenOf[_paymentToken] +
-				changeOf[_paymentToken];
 		require(
-			_amount <= withdrawableAmount,
-			"Transfer amount exceeds balance"
+			_amount > 0 && _amount <= changeOf[_paymentToken],
+			"Invalid amount"
 		);
-		changeOf[_paymentToken] = _amount > changeOf[_paymentToken]
-			? 0
-			: changeOf[_paymentToken] - _amount;
-		_balanceTokenOf[_paymentToken] = _amount >
-			_balanceTokenOf[_paymentToken]
-			? 0
-			: _balanceTokenOf[_paymentToken] - _amount;
-		if (_paymentToken == address(0)) {
-			Helper.safeTransferNative(_to, _amount);
-		} else {
-			IERC20Upgradeable(_paymentToken).safeTransfer(_to, _amount);
-		}
+		changeOf[_paymentToken] -= _amount;
+		_paymentToken == address(0)
+			? Helper.safeTransferNative(_to, _amount)
+			: IERC20Upgradeable(_paymentToken).safeTransfer(_to, _amount);
 		emit Withdrawn(_paymentToken, _to, _amount);
 	}
 
@@ -439,7 +416,6 @@ contract ERC721 is
 			"Invalid amount"
 		);
 		ownerBalanceOf[_paymentToken][_to] -= _amount;
-		_balanceTokenOf[_paymentToken] -= _amount;
 		if (_paymentToken != address(0)) {
 			IERC20Upgradeable(_paymentToken).approve(address(this), _amount);
 		}
