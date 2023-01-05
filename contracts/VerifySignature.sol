@@ -93,7 +93,7 @@ contract VerifySignature {
     */
 	function verify(
 		address _signer,
-		TokenInput memory _tokenInput,
+		TokenInfo memory _tokenInput,
 		bytes memory signature
 	) public pure returns (bool) {
 		bytes32 messageHash = getMessageHash(

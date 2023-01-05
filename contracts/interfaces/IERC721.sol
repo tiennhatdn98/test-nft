@@ -29,7 +29,7 @@ interface IERC721 is IERC721MetadataUpgradeable {
 	function transfer(address _from, address _to, uint256 tokenId) external;
 }
 
-struct TokenInput {
+struct TokenInfo {
 	uint256 tokenId;
 	uint256 amount; // Amount of money that user pay
 	uint256 price; // Amount of money that need to mint
