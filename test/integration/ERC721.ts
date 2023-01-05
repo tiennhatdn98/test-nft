@@ -92,16 +92,18 @@ describe("ERC721 Integration", () => {
     resetTokenInput();
   });
 
-  describe("1. Mint token => Transfer token", () => {
+  describe("1. Mint token by paying native token => Transfer token => Local government claims => Owner of contract withdraws", () => {
     it("1.1. Should be successfull", async () => {
       // Mint token
+      const price = ethers.utils.parseEther("1");
+      const amount = ethers.utils.parseEther("2");
       tokenInput.tokenURI = "ipfs://1.json";
-      tokenInput.price = ethers.utils.parseEther("1");
-      tokenInput.amount = ethers.utils.parseEther("1");
+      tokenInput.price = price;
+      tokenInput.amount = amount;
       tokenInput.owner = government.address;
       const signature = await getSignature(tokenInput, verifier);
       await erc721.mint(users[0].address, tokenInput, signature, {
-        value: ethers.utils.parseEther("1"),
+        value: amount,
       });
 
       // Transfer token
@@ -114,6 +116,30 @@ describe("ERC721 Integration", () => {
         [-1, 1]
       );
       expect(await erc721.ownerOf(tokenId)).to.be.equal(users[1].address);
+
+      // Local government claims
+      await expect(
+        erc721.claim(ZERO_ADDRESS, government.address, tokenInput.price)
+      ).changeEtherBalances(
+        [erc721.address, government.address],
+        [price.mul(-1), price]
+      );
+
+      // Someone transfers to contract
+      // const donation = ethers.utils.parseEther("1.5");
+      // console.log(donation);
+      // await users[1].sendTransaction({ to: erc721.address, value: donation });
+
+      // Owner withdraws
+      const withdrawableAmount = amount.sub(price);
+      await expect(
+        erc721
+          .connect(owner)
+          .withdraw(ZERO_ADDRESS, owner.address, withdrawableAmount)
+      ).changeEtherBalances(
+        [erc721.address, owner.address],
+        [withdrawableAmount.mul(-1), withdrawableAmount]
+      );
     });
   });
 });

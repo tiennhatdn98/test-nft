@@ -14,7 +14,6 @@ import "./Authorizable.sol";
 import "./interfaces/IERC721.sol";
 import "./VerifySignature.sol";
 
-// ERC721Upgradeable,
 contract ERC721 is
 	ERC721Upgradeable,
 	// ERC721EnumerableUpgradeable,

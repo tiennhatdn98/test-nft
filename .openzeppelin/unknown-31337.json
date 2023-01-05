@@ -2,7 +2,7 @@
   "manifestVersion": "3.2",
   "admin": {
     "address": "0xe7f1725E7734CE288F8367e1Bb143E90bb3F0512",
-    "txHash": "0x83ebbbf264bc43fb982db7a4571904310faf95c643019050de2f7c6b1236aa5f"
+    "txHash": "0x33d74c104cfff5eccf53c21528e313cd99b88ae57de0dd8e468950991721bd07"
   },
   "proxies": [
     {
@@ -636,11 +636,6 @@
       "kind": "transparent"
     },
     {
-      "address": "0x9fE46736679d2D9a65F0992F2272dE9f3c7fa6e0",
-      "txHash": "0x1f24eb2125f118ca25abc0696863abc7f7df471fddbb27dc65c89a471fe1c1f4",
-      "kind": "transparent"
-    },
-    {
       "address": "0x2279B7A0a67DB372996a5FaB50D91eAA73d2eBe6",
       "txHash": "0x87243165906d9a5d6a86eb4ae7b80bee3f6123c18ca94e6dc5565c4cd228f9f3",
       "kind": "transparent"
@@ -884,12 +879,17 @@
       "address": "0x00CAC06Dd0BB4103f8b62D280fE9BCEE8f26fD59",
       "txHash": "0x2ce6cf167b8d15efe8527f3c460eb16d16f8d2b3a25bd498872f5782b01426c7",
       "kind": "transparent"
+    },
+    {
+      "address": "0x9fE46736679d2D9a65F0992F2272dE9f3c7fa6e0",
+      "txHash": "0xb0cde8fe1d6c61d68d97ce6d23b73aa9ca936ba81cde833e07ee191580894b78",
+      "kind": "transparent"
     }
   ],
   "impls": {
     "d7f4a44a4beeb83bd9e1034d0d3702c6a7bd123b178b33393156651509c06dec": {
       "address": "0x5FbDB2315678afecb367f032d93F642f64180aa3",
-      "txHash": "0xeb77bc8e15a394e217f52eb8ae1c46816e144f67539215e90932b83d94c08184",
+      "txHash": "0x6b9c045e80f06a5d50502e999b7c18e59ef59af8fb6a3a5bde94a5ecb703fa5f",
       "layout": {
         "solcVersion": "0.8.17",
         "storage": [
@@ -1060,7 +1060,7 @@
             "slot": "303",
             "type": "t_struct(Counter)2873_storage",
             "contract": "ERC721",
-            "src": "contracts/ERC721.sol:35"
+            "src": "contracts/ERC721.sol:34"
           },
           {
             "label": "defaultRoyaltyInfo",
@@ -1068,7 +1068,7 @@
             "slot": "304",
             "type": "t_struct(RoyaltyInfo)2352_storage",
             "contract": "ERC721",
-            "src": "contracts/ERC721.sol:40"
+            "src": "contracts/ERC721.sol:39"
           },
           {
             "label": "expiration",
@@ -1076,7 +1076,7 @@
             "slot": "305",
             "type": "t_uint256",
             "contract": "ERC721",
-            "src": "contracts/ERC721.sol:45"
+            "src": "contracts/ERC721.sol:44"
           },
           {
             "label": "expirationOf",
@@ -1084,7 +1084,7 @@
             "slot": "306",
             "type": "t_mapping(t_uint256,t_uint256)",
             "contract": "ERC721",
-            "src": "contracts/ERC721.sol:50"
+            "src": "contracts/ERC721.sol:49"
           },
           {
             "label": "statusOf",
@@ -1092,7 +1092,7 @@
             "slot": "307",
             "type": "t_mapping(t_uint256,t_bool)",
             "contract": "ERC721",
-            "src": "contracts/ERC721.sol:55"
+            "src": "contracts/ERC721.sol:54"
           },
           {
             "label": "ownerBalanceOf",
@@ -1100,7 +1100,7 @@
             "slot": "308",
             "type": "t_mapping(t_address,t_mapping(t_address,t_uint256))",
             "contract": "ERC721",
-            "src": "contracts/ERC721.sol:60"
+            "src": "contracts/ERC721.sol:59"
           },
           {
             "label": "_balanceTokenOf",
@@ -1108,7 +1108,7 @@
             "slot": "309",
             "type": "t_mapping(t_address,t_uint256)",
             "contract": "ERC721",
-            "src": "contracts/ERC721.sol:65"
+            "src": "contracts/ERC721.sol:64"
           },
           {
             "label": "changeOf",
@@ -1116,7 +1116,7 @@
             "slot": "310",
             "type": "t_mapping(t_address,t_uint256)",
             "contract": "ERC721",
-            "src": "contracts/ERC721.sol:70"
+            "src": "contracts/ERC721.sol:69"
           },
           {
             "label": "_tokenURIs",
@@ -1124,7 +1124,7 @@
             "slot": "311",
             "type": "t_mapping(t_uint256,t_string_storage)",
             "contract": "ERC721",
-            "src": "contracts/ERC721.sol:75"
+            "src": "contracts/ERC721.sol:74"
           },
           {
             "label": "tokenIdOf",
@@ -1132,7 +1132,7 @@
             "slot": "312",
             "type": "t_mapping(t_bytes_memory_ptr,t_uint256)",
             "contract": "ERC721",
-            "src": "contracts/ERC721.sol:80"
+            "src": "contracts/ERC721.sol:79"
           }
         ],
         "types": {
