@@ -1,23 +1,21 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<testsuites name="Mocha Tests" time="4.116" tests="1" failures="1">
-  <testsuite name="Root Suite" timestamp="2023-01-05T10:34:03" tests="0" time="0.000" failures="0">
+<testsuites name="Mocha Tests" time="1.779" tests="1" failures="1">
+  <testsuite name="Root Suite" timestamp="2023-01-06T09:41:41" tests="0" time="0.000" failures="0">
   </testsuite>
-  <testsuite name="ERC721" timestamp="2023-01-05T10:34:03" tests="0" file="/home/nhat-truong/Projects/test-nft/test/ERC721.ts" time="0.000" failures="0">
+  <testsuite name="ERC721" timestamp="2023-01-06T09:41:41" tests="0" file="/home/nhat-truong/Projects/test-nft/test/ERC721.ts" time="0.000" failures="0">
   </testsuite>
-  <testsuite name="12. Transfer" timestamp="2023-01-05T10:34:04" tests="1" file="/home/nhat-truong/Projects/test-nft/test/ERC721.ts" time="3.982" failures="1">
-    <testcase name="ERC721 12. Transfer 12.6. Should be successful when user transfers token without royalty by paying native token" time="0.154" classname="12.6. Should be successful when user transfers token without royalty by paying native token">
-      <failure message="expected 1704471778 to be at least 1704471781. The numerical values of the given &quot;ethers.BigNumber&quot; and &quot;ethers.BigNumber&quot; inputs were compared, and they differed." type="AssertionError"><![CDATA[AssertionError: expected 1704471778 to be at least 1704471781. The numerical values of the given "ethers.BigNumber" and "ethers.BigNumber" inputs were compared, and they differed.
-    at Context.<anonymous> (test/ERC721.ts:1057:56)
+  <testsuite name="13. Buy" timestamp="2023-01-06T09:41:41" tests="0" file="/home/nhat-truong/Projects/test-nft/test/ERC721.ts" time="0.000" failures="0">
+  </testsuite>
+  <testsuite name="13.4. Buy without royalty" timestamp="2023-01-06T09:41:41" tests="1" file="/home/nhat-truong/Projects/test-nft/test/ERC721.ts" time="1.727" failures="1">
+    <testcase name="ERC721 13. Buy 13.4. Buy without royalty 13.4.1. Should be successful when user buys a token paid by native token" time="0.037" classname="13.4.1. Should be successful when user buys a token paid by native token">
+      <failure message="Expected the ether balance of 0x9965507D1a55bcC2695C58ba16FB37d819B0A4dc (the 1st address in the list) to change by 1000000000000000000 wei, but it changed by 0 wei
+Expected the ether balance of 0x976EA74026E726554dB657fA54763abd0C3a0aa9 (the 2nd address in the list) to change by -1000000000000000000 wei, but it changed by 1000000000000000000 wei" type="AssertionError"><![CDATA[AssertionError: Expected the ether balance of 0x9965507D1a55bcC2695C58ba16FB37d819B0A4dc (the 1st address in the list) to change by 1000000000000000000 wei, but it changed by 0 wei
+Expected the ether balance of 0x976EA74026E726554dB657fA54763abd0C3a0aa9 (the 2nd address in the list) to change by -1000000000000000000 wei, but it changed by 1000000000000000000 wei
     at processTicksAndRejections (internal/process/task_queues.js:95:5)
     at runNextTicks (internal/process/task_queues.js:64:3)
     at listOnTimeout (internal/timers.js:526:9)
     at processTimers (internal/timers.js:500:7)
-
-      + expected - actual
-
-      -1704471778
-      +1704471781
-      ]]></failure>
+    at async Context.<anonymous> (test/ERC721.ts:1176:9)]]></failure>
     </testcase>
   </testsuite>
 </testsuites>

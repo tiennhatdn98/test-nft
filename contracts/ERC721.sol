@@ -61,14 +61,14 @@ contract ERC721 is
 	mapping(address => mapping(address => uint256)) public ownerBalanceOf;
 
 	/**
-	 * @notice Mapping token address to withdrawable amount for owner withdraws
+	 * @notice Mapping token address to change amount when mint token
 	 */
 	mapping(address => uint256) public changeOf;
 
 	/**
 	 * @notice Mapping token ID and URI to store token URIs
 	 */
-	mapping(uint256 => string) private _tokenURIs;
+	// mapping(uint256 => string) private _tokenURIs;
 
 	/**
 	 * @notice Mapping signature to token ID
@@ -90,7 +90,7 @@ contract ERC721 is
 	/**
 	 * @notice Emit event when updating metadata of a token
 	 */
-	event SetBaseURI(string indexed oldUri, string indexed newUri);
+	// event SetBaseURI(string indexed oldUri, string indexed newUri);
 
 	/**
 	 * @notice Emit event when set token URI
@@ -128,6 +128,11 @@ contract ERC721 is
 		address indexed to,
 		uint256 amount
 	);
+
+	/**
+	 * @notice Emit event when someone claims
+	 */
+	event Bought(address buyer, uint256 tokenId);
 
 	/**
 	 *  @notice Update new base URI
@@ -243,8 +248,10 @@ contract ERC721 is
 			verify(verifier, _tokenInput, _signature),
 			"SetTokenURI: Invalid signature"
 		);
-		string memory oldTokenURI = _tokenURIs[_tokenId];
-		_tokenURIs[_tokenId] = _tokenURI;
+		// string memory oldTokenURI = _tokenURIs[_tokenId];
+		// _tokenURIs[_tokenId] = _tokenURI;
+		string memory oldTokenURI = tokens[_tokenId].tokenURI;
+		tokens[_tokenId].tokenURI = _tokenURI;
 		tokens[_tokenId].tokenURI = _tokenURI;
 		emit SetTokenURI(_tokenId, oldTokenURI, _tokenURI);
 	}
@@ -302,7 +309,7 @@ contract ERC721 is
 			_exists(_tokenId),
 			"ERC721Metadata: URI query for nonexistent token."
 		);
-		return _tokenURIs[_tokenId];
+		return tokens[_tokenId].tokenURI;
 	}
 
 	/**
@@ -332,6 +339,7 @@ contract ERC721 is
 	 *  @param  _tokenInput.price           Amount of money that need to mint token
 	 *  @param  _tokenInput.paymentToken    Payment token address (Zero address if user pay native token)
 	 *  @param  _tokenInput.tokenURI        Token URI
+	 *  @param  _tokenInput.owner        		Local government address
 	 *  @param  _tokenInput.status          Status of token (true is ACTIVE, false is DEACTIVE, default true)
 	 *  @param  _signature                  Signature of transaction
 	 *
@@ -354,15 +362,19 @@ contract ERC721 is
 		if (_tokenInput.paymentToken == address(0)) {
 			require(msg.value == _tokenInput.amount, "Invalid amount of money");
 		}
+		require(_tokenInput.owner != address(0), "Invalid address");
 		require(
 			verify(verifier, _tokenInput, _signature),
 			"Mint: Invalid signature"
 		);
 		lastId.increment();
 		_safeMint(_to, lastId.current());
-		_tokenURIs[lastId.current()] = _tokenInput.tokenURI;
+		// _tokenURIs[lastId.current()] = _tokenInput.tokenURI;
+		// Update status
 		statusOf[lastId.current()] = true;
+		// Update expiration
 		expirationOf[lastId.current()] = block.timestamp + expiration;
+		// Update owner balance
 		ownerBalanceOf[_tokenInput.paymentToken][
 			_tokenInput.owner
 		] += _tokenInput.price;
@@ -384,6 +396,25 @@ contract ERC721 is
 		}
 	}
 
+	/**
+	 *  @notice Mint a token to an address with royalty
+	 *
+	 *  @dev    Only owner or controller can call this function
+	 *
+	 *          Name                        Meaning
+	 *  @param  _to                         Address that want to mint token
+	 *  @param  _tokenInput.tokenId         Token ID (default 0)
+	 *  @param  _tokenInput.amount          Amount of money that user pay
+	 *  @param  _tokenInput.price           Amount of money that need to mint token
+	 *  @param  _tokenInput.paymentToken    Payment token address (Zero address if user pay native token)
+	 *  @param  _tokenInput.tokenURI        Token URI
+	 *  @param  _tokenInput.owner        		Local government address
+	 *  @param  _tokenInput.status          Status of token (true is ACTIVE, false is DEACTIVE, default true)
+	 *  @param  _signature                  Signature of transaction
+	 *  @param  _royaltyReceiver            Royalty receiver address
+	 *
+	 *  Emit event {Transfer(address(0), _to, tokenId)}
+	 */
 	function mintWithRoyalty(
 		address _to,
 		TokenInfo memory _tokenInput,
@@ -402,18 +433,16 @@ contract ERC721 is
 		if (_tokenInput.paymentToken == address(0)) {
 			require(msg.value == _tokenInput.amount, "Invalid amount of money");
 		}
+		require(_tokenInput.owner != address(0), "Invalid address");
 		require(
 			verify(verifier, _tokenInput, _signature),
 			"Mint: Invalid signature"
 		);
 		lastId.increment();
 		_safeMint(_to, lastId.current());
-		_tokenURIs[lastId.current()] = _tokenInput.tokenURI;
+		// _tokenURIs[lastId.current()] = _tokenInput.tokenURI;
 		statusOf[lastId.current()] = true;
 		expirationOf[lastId.current()] = block.timestamp + expiration;
-		ownerBalanceOf[_tokenInput.paymentToken][
-			_tokenInput.owner
-		] += _tokenInput.price;
 		tokenIdOf[_signature] = lastId.current();
 		_tokenInput.tokenId = lastId.current();
 		tokens[lastId.current()] = _tokenInput;
@@ -428,6 +457,13 @@ contract ERC721 is
 				_royaltyReceiver,
 				defaultRoyaltyInfo.royaltyFraction
 			);
+		(, uint256 royaltyFraction) = royaltyInfo(
+			lastId.current(),
+			_tokenInput.price
+		);
+		ownerBalanceOf[_tokenInput.paymentToken][
+			_tokenInput.owner
+		] += (_tokenInput.price - royaltyFraction);
 		if (_tokenInput.amount > _tokenInput.price) {
 			changeOf[_tokenInput.paymentToken] +=
 				_tokenInput.amount -
@@ -496,11 +532,98 @@ contract ERC721 is
 		);
 		ownerBalanceOf[_paymentToken][_to] -= _amount;
 		if (_paymentToken != address(0)) {
-			// @todo Fix wrong logic
 			IERC20Upgradeable(_paymentToken).approve(address(this), _amount);
 		}
 		_handleTransfer(address(this), _to, _paymentToken, _amount);
 		emit Claimed(_paymentToken, _to, _amount);
+	}
+
+	/**
+	 *  @notice Transfer token from an address to another address
+	 *
+	 *  @dev    Anyone can call this function
+	 *
+	 *          Name            Meaning
+	 *  @param  _to             Recipient address
+	 *  @param  _tokenId        Token ID
+	 *
+	 *  Emit event {Transfer(from, to, tokenId)}
+	 */
+	function transfer(address _to, uint256 _tokenId) external {
+		// TokenInfo memory token = tokens[_tokenId];
+		// (address royaltyReceiver, uint256 royaltyFraction) = royaltyInfo(
+		// 	_tokenId,
+		// 	token.price
+		// );
+		require(_msgSender() != _to, "Transfer to yourself");
+		require(
+			_exists(_tokenId),
+			"ERC721Metadata: URI query for nonexistent token."
+		);
+		require(statusOf[_tokenId], "Token is deactive");
+		expirationOf[_tokenId] = block.timestamp + expiration;
+
+		// // Transfer token to recipient address
+		// safeTransferFrom(_msgSender(), _to, _tokenId);
+
+		// // Transfer royalty fee to royalty receiver
+		// if (token.paymentToken != address(0)) {
+		// 	IERC20Upgradeable(token.paymentToken).approve(
+		// 		address(this),
+		// 		royaltyFraction
+		// 	);
+		// }
+		// _handleTransfer(
+		// 	address(this),
+		// 	royaltyReceiver,
+		// 	token.paymentToken,
+		// 	royaltyFraction
+		// );
+	}
+
+	/**
+	 *  @notice A user buys a token
+	 *
+	 *  @dev    Anyone can call this function
+	 *
+	 *          Name            Meaning
+	 *  @param  _tokenId        Token ID
+	 *
+	 *  Emit event {Bought}
+	 */
+	function buy(uint256 _tokenId) external payable nonReentrant {
+		require(
+			_exists(_tokenId),
+			"ERC721Metadata: URI query for nonexistent token."
+		);
+		require(ownerOf(_tokenId) != _msgSender(), "Already owned this token");
+		require(statusOf[_tokenId], "Token is deactive");
+
+		TokenInfo memory token = tokens[_tokenId];
+		(address royaltyReceiver, uint256 royaltyFraction) = royaltyInfo(
+			_tokenId,
+			token.price
+		);
+		// expirationOf[_tokenId] = block.timestamp + expiration;
+		_safeTransfer(ownerOf(_tokenId), _msgSender(), _tokenId, "");
+
+		if (token.paymentToken != address(0)) {
+			IERC20Upgradeable(token.paymentToken).safeTransfer(
+				ownerOf(_tokenId),
+				token.price - royaltyFraction
+			);
+			IERC20Upgradeable(token.paymentToken).safeTransfer(
+				royaltyReceiver,
+				royaltyFraction
+			);
+		} else {
+			Helper.safeTransferNative(
+				ownerOf(_tokenId),
+				token.price - royaltyFraction
+			);
+			Helper.safeTransferNative(royaltyReceiver, royaltyFraction);
+		}
+		emit Bought(_msgSender(), _tokenId);
 	}
 
 	/**
@@ -532,50 +655,5 @@ contract ERC721 is
 		}
 	}
 
-	/**
-	 *  @notice Transfer token from an address to another address
-	 *
-	 *  @dev    Anyone can call this function
-	 *
-	 *          Name            Meaning
-	 *  @param  _to             Recipient address
-	 *  @param  _tokenId        Token ID
-	 *
-	 *  Emit event {Transfer(from, to, tokenId)}
-	 */
-	function transfer(address _to, uint256 _tokenId) external {
-		TokenInfo memory token = tokens[_tokenId];
-		// Get royalty info of token
-		(address royaltyReceiver, uint256 royaltyFraction) = royaltyInfo(
-			_tokenId,
-			token.price
-		);
-		require(_msgSender() != _to, "Transfer to yourself");
-		require(
-			_exists(_tokenId),
-			"ERC721Metadata: URI query for nonexistent token."
-		);
-		require(statusOf[_tokenId], "Token is deactive");
-		// Update expiration of token
-		expirationOf[_tokenId] = block.timestamp + expiration;
-		// Transfer token to recipient address
-		safeTransferFrom(_msgSender(), _to, _tokenId);
-		// Transfer royalty fee to royalty receiver
-		_handleTransfer(
-			address(this),
-			royaltyReceiver,
-			token.paymentToken,
-			royaltyFraction
-		);
-		// if (token.paymentToken == address(0)) {
-		// 	(bool sent, ) = _to.call{ value: royaltyFraction }("");
-		// 	require(sent, "Failed to send Ether");
-		// } else {
-		// 	IERC20Upgradeable(token.paymentToken).safeTransferFrom(
-		// 		address(this),
-		// 		royaltyReceiver,
-		// 		royaltyFraction
-		// 	);
-		// }
-	}
+	function _setTokenStates(TokenInfo memory _tokenInput) private {}
 }

@@ -6,7 +6,8 @@
     "test-integration": "npx hardhat test test/integration/*.ts",
     "deploy-binance-testnet": "npx hardhat run scripts/deploy.ts --network binance_testnet",
     "deploy-binance-mainnet": "npx hardhat run scripts/deploy.ts --network binance",
-    "size-contracts": "npx hardhat size-contracts"
+    "size-contracts": "npx hardhat size-contracts",
+    "solhint": "npx solhint --formatter table 'contracts/**/*.sol'"
   },
   "devDependencies": {
     "@ethersproject/abi": "^5.7.0",
