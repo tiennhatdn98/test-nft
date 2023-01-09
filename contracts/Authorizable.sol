@@ -2,9 +2,12 @@
 pragma solidity 0.8.17;
 
 import "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
+import "@openzeppelin/contracts-upgradeable/utils/AddressUpgradeable.sol";
+
 import "./interfaces/IAuthorizable.sol";
 
 abstract contract Authorizable is IAuthorizable, OwnableUpgradeable {
+	using AddressUpgradeable for address;
 	/**
 	 * @notice admin address is Admin address
 	 */
@@ -37,7 +40,10 @@ abstract contract Authorizable is IAuthorizable, OwnableUpgradeable {
 	 * Emit event {SetAdmin}
 	 */
 	function setAdmin(address _account) external onlyOwner {
-		require(_account != address(0), "Ownable: Invalid address");
+		require(
+			_account != address(0) && !_account.isContract(),
+			"Ownable: Invalid address"
+		);
 		address oldAdmin = admin;
 		admin = _account;
 		emit SetAdmin(oldAdmin, admin);
@@ -50,7 +56,10 @@ abstract contract Authorizable is IAuthorizable, OwnableUpgradeable {
 	 * Emit event {SetVerifier}
 	 */
 	function setVerifier(address _account) external onlyAdmin {
-		require(_account != address(0), "Ownable: Invalid address");
+		require(
+			_account != address(0) && !_account.isContract(),
+			"Ownable: Invalid address"
+		);
 		address oldVerifier = verifier;
 		verifier = _account;
 		emit SetVerifier(oldVerifier, verifier);

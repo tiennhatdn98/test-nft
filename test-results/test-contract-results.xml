@@ -1,21 +1,29 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<testsuites name="Mocha Tests" time="1.779" tests="1" failures="1">
-  <testsuite name="Root Suite" timestamp="2023-01-06T09:41:41" tests="0" time="0.000" failures="0">
+<testsuites name="Mocha Tests" time="8.128" tests="10" failures="0">
+  <testsuite name="Root Suite" timestamp="2023-01-09T10:02:47" tests="0" time="0.000" failures="0">
   </testsuite>
-  <testsuite name="ERC721" timestamp="2023-01-06T09:41:41" tests="0" file="/home/nhat-truong/Projects/test-nft/test/ERC721.ts" time="0.000" failures="0">
+  <testsuite name="ERC721" timestamp="2023-01-09T10:02:47" tests="0" file="/home/nhat-truong/Projects/test-nft/test/ERC721.ts" time="0.000" failures="0">
   </testsuite>
-  <testsuite name="13. Buy" timestamp="2023-01-06T09:41:41" tests="0" file="/home/nhat-truong/Projects/test-nft/test/ERC721.ts" time="0.000" failures="0">
-  </testsuite>
-  <testsuite name="13.4. Buy without royalty" timestamp="2023-01-06T09:41:41" tests="1" file="/home/nhat-truong/Projects/test-nft/test/ERC721.ts" time="1.727" failures="1">
-    <testcase name="ERC721 13. Buy 13.4. Buy without royalty 13.4.1. Should be successful when user buys a token paid by native token" time="0.037" classname="13.4.1. Should be successful when user buys a token paid by native token">
-      <failure message="Expected the ether balance of 0x9965507D1a55bcC2695C58ba16FB37d819B0A4dc (the 1st address in the list) to change by 1000000000000000000 wei, but it changed by 0 wei
-Expected the ether balance of 0x976EA74026E726554dB657fA54763abd0C3a0aa9 (the 2nd address in the list) to change by -1000000000000000000 wei, but it changed by 1000000000000000000 wei" type="AssertionError"><![CDATA[AssertionError: Expected the ether balance of 0x9965507D1a55bcC2695C58ba16FB37d819B0A4dc (the 1st address in the list) to change by 1000000000000000000 wei, but it changed by 0 wei
-Expected the ether balance of 0x976EA74026E726554dB657fA54763abd0C3a0aa9 (the 2nd address in the list) to change by -1000000000000000000 wei, but it changed by 1000000000000000000 wei
-    at processTicksAndRejections (internal/process/task_queues.js:95:5)
-    at runNextTicks (internal/process/task_queues.js:64:3)
-    at listOnTimeout (internal/timers.js:526:9)
-    at processTimers (internal/timers.js:500:7)
-    at async Context.<anonymous> (test/ERC721.ts:1176:9)]]></failure>
+  <testsuite name="2. Mint" timestamp="2023-01-09T10:02:47" tests="10" file="/home/nhat-truong/Projects/test-nft/test/ERC721.ts" time="8.012" failures="0">
+    <testcase name="ERC721 2. Mint 2.1. Should be fail when address is zero address" time="0.032" classname="2.1. Should be fail when address is zero address">
+    </testcase>
+    <testcase name="ERC721 2. Mint 2.2. Should be fail when amount is equal 0" time="0.016" classname="2.2. Should be fail when amount is equal 0">
+    </testcase>
+    <testcase name="ERC721 2. Mint 2.3. Should be fail when price is equal 0" time="0.019" classname="2.3. Should be fail when price is equal 0">
+    </testcase>
+    <testcase name="ERC721 2. Mint 2.4. Should be fail when user pay native token and msg.value is not equal amount" time="0.042" classname="2.4. Should be fail when user pay native token and msg.value is not equal amount">
+    </testcase>
+    <testcase name="ERC721 2. Mint 2.5. Should be fail when user pay native token less than price of token" time="0.018" classname="2.5. Should be fail when user pay native token less than price of token">
+    </testcase>
+    <testcase name="ERC721 2. Mint 2.6. Should be fail when user pay cash test token less than price of token" time="0.019" classname="2.6. Should be fail when user pay cash test token less than price of token">
+    </testcase>
+    <testcase name="ERC721 2. Mint 2.7. Should be fail when local government address is zero address" time="0.017" classname="2.7. Should be fail when local government address is zero address">
+    </testcase>
+    <testcase name="ERC721 2. Mint 2.8. Should be fail when transaction is not signed by verifier" time="0.026" classname="2.8. Should be fail when transaction is not signed by verifier">
+    </testcase>
+    <testcase name="ERC721 2. Mint 2.9. Should mint successfully when user pay native token" time="0.203" classname="2.9. Should mint successfully when user pay native token">
+    </testcase>
+    <testcase name="ERC721 2. Mint 2.10. Should mint successfully when user pay cash test token" time="0.217" classname="2.10. Should mint successfully when user pay cash test token">
     </testcase>
   </testsuite>
 </testsuites>
