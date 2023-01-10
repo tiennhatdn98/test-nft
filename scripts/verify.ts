@@ -20,6 +20,10 @@ async function main() {
     //   address: "0x0a7093d399e8Fccb33bDB6bBF0870A1924d7cC26",
     //   constructorArguments: ["NFT", "NFT"],
     // });
+    // await run("verify:verify", {
+    //   address: "0xff402fF1b143eCE3888bf26E67b0EA46011d77FD",
+    //   constructorArguments: ["NFT", "NFT"],
+    // });
   } catch (error) {
     console.log("Error: >> ", error);
   }

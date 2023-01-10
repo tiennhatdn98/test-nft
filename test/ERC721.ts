@@ -155,35 +155,56 @@ describe("ERC721", () => {
       expect(await erc721.symbol()).to.be.equal(SYMBOL);
       expect(await erc721.lastId()).to.be.equal(0);
       expect(await erc721.expiration()).to.be.equal(YEAR_TO_SECONDS);
+      expect(await erc721.defaultRoyaltyInfo()).to.be.deep.equal([
+        royaltyReceiver.address,
+        royaltyPercentage,
+      ]);
     });
   });
 
-  describe.only("2. Mint", () => {
+  describe("2. Mint", () => {
     beforeEach(() => resetTokenInput());
 
-    it("2.1. Should be fail when address is zero address", async () => {
+    it("2.1. Should be fail when recipient address is zero address", async () => {
       await expect(
         erc721.mint(ZERO_ADDRESS, tokenInput, sampleSignature)
       ).to.be.revertedWith("Invalid address");
     });
 
-    it("2.2. Should be fail when amount is equal 0", async () => {
+    it("2.2. Should be fail when recipient address is a contract address", async () => {
+      await expect(
+        erc721.mint(cashTestToken.address, tokenInput, sampleSignature)
+      ).to.be.revertedWith("Invalid address");
+    });
+
+    it("2.3. Should be fail when amount is equal 0", async () => {
       tokenInput.owner = government.address;
       tokenInput.price = ethers.utils.parseEther("1");
       await expect(
         erc721.mint(users[0].address, tokenInput, sampleSignature)
-      ).to.be.revertedWith("Invalid price and amount");
+      ).to.be.revertedWith("Invalid price or amount");
     });
 
-    it("2.3. Should be fail when price is equal 0", async () => {
+    it("2.4. Should be fail when price is equal 0", async () => {
       tokenInput.owner = government.address;
       tokenInput.amount = ethers.utils.parseEther("1");
       await expect(
         erc721.mint(users[0].address, tokenInput, sampleSignature)
-      ).to.be.revertedWith("Invalid price and amount");
+      ).to.be.revertedWith("Invalid price or amount");
     });
 
-    it("2.4. Should be fail when user pay native token and msg.value is not equal amount", async () => {
+    it("2.5. Should be fail when amount is less than price", async () => {
+      tokenInput.price = ethers.utils.parseEther("1");
+      tokenInput.amount = ethers.utils.parseEther("0.5");
+      tokenInput.owner = government.address;
+      await expect(
+        erc721.mint(users[0].address, tokenInput, sampleSignature, {
+          value: tokenInput.amount,
+        })
+      ).to.be.revertedWith("Invalid price or amount");
+    });
+
+    it("2.6. Should be fail when user pay native token and msg.value is not equal amount", async () => {
       tokenInput.price = ethers.utils.parseEther("1");
       tokenInput.amount = ethers.utils.parseEther("2");
       tokenInput.owner = government.address;
@@ -195,49 +216,52 @@ describe("ERC721", () => {
       ).to.be.revertedWith("Invalid amount of money");
     });
 
-    it("2.5. Should be fail when user pay native token less than price of token", async () => {
-      tokenInput.price = ethers.utils.parseEther("1");
-      tokenInput.amount = ethers.utils.parseEther("0.5");
-      tokenInput.owner = government.address;
-      await expect(
-        erc721.mint(users[0].address, tokenInput, sampleSignature, {
-          value: ethers.utils.parseEther("0.5"),
-        })
-      ).to.be.revertedWith("Not enough money");
-    });
-
-    it("2.6. Should be fail when user pay cash test token less than price of token", async () => {
-      tokenInput.price = ethers.utils.parseEther("1");
-      tokenInput.amount = ethers.utils.parseEther("0.5");
+    it("2.7. Should be fail when user pays cash test token and payment token is not a contract address", async () => {
+      tokenInput.paymentToken = users[0].address;
+      tokenInput.price = ethers.utils.parseUnits("1", DECIMALS);
+      tokenInput.amount = ethers.utils.parseUnits("1", DECIMALS);
       tokenInput.owner = government.address;
       await expect(
         erc721.mint(users[0].address, tokenInput, sampleSignature)
-      ).to.be.revertedWith("Not enough money");
+      ).to.be.revertedWith("Invalid token address");
     });
 
-    it("2.7. Should be fail when local government address is zero address", async () => {
+    it("2.8. Should be fail when local government address is zero address", async () => {
       tokenInput.price = ethers.utils.parseEther("1");
-      tokenInput.amount = ethers.utils.parseEther("0.5");
+      tokenInput.amount = ethers.utils.parseEther("1");
       tokenInput.owner = ZERO_ADDRESS;
       await expect(
-        erc721.mint(users[0].address, tokenInput, sampleSignature)
-      ).to.be.revertedWith("Invalid address");
+        erc721.mint(users[0].address, tokenInput, sampleSignature, {
+          value: tokenInput.amount,
+        })
+      ).to.be.revertedWith("Invalid owner address");
     });
 
-    it("2.8. Should be fail when transaction is not signed by verifier", async () => {
+    it("2.9. Should be fail when local government address is a contract address", async () => {
+      tokenInput.price = ethers.utils.parseEther("1");
+      tokenInput.amount = ethers.utils.parseEther("1");
+      tokenInput.owner = cashTestToken.address;
+      await expect(
+        erc721.mint(users[0].address, tokenInput, sampleSignature, {
+          value: tokenInput.amount,
+        })
+      ).to.be.revertedWith("Invalid owner address");
+    });
+
+    it("2.10. Should be fail when transaction is not signed by verifier", async () => {
       tokenInput.tokenURI = "ipfs://1.json";
       tokenInput.amount = ethers.utils.parseEther("1");
       tokenInput.price = ethers.utils.parseEther("1");
       tokenInput.owner = government.address;
-      const sig = await getSignature(tokenInput, owner);
+      const signature = await getSignature(tokenInput, owner);
       await expect(
-        erc721.mint(users[0].address, tokenInput, sig, {
-          value: ethers.utils.parseEther("1"),
+        erc721.mint(users[0].address, tokenInput, signature, {
+          value: tokenInput.amount,
         })
       ).to.be.revertedWith("Mint: Invalid signature");
     });
 
-    it("2.9. Should mint successfully when user pay native token", async () => {
+    it("2.11. Should mint successfully when user pays native token", async () => {
       tokenInput.tokenURI = "ipfs://1.json";
       tokenInput.price = ethers.utils.parseEther("1");
       tokenInput.amount = ethers.utils.parseEther("2");
@@ -256,7 +280,7 @@ describe("ERC721", () => {
 
       const currentBlockTimestamp = await blockTimestamp();
       const currentTokenId = await erc721.lastId();
-      const [_, royaltyFraction] = await erc721.royaltyInfo(
+      const [royaltyAddress, royaltyFraction] = await erc721.royaltyInfo(
         currentTokenId,
         tokenInput.price
       );
@@ -276,9 +300,10 @@ describe("ERC721", () => {
         await erc721.ownerBalanceOf(tokenInput.paymentToken, government.address)
       ).to.be.equal(tokenInput.price.sub(royaltyFraction));
       expect(await erc721.tokenIdOf(signature)).to.be.equal(currentTokenId);
+      expect(royaltyAddress).to.be.equal(royaltyReceiver.address);
     });
 
-    it("2.10. Should mint successfully when user pay cash test token", async () => {
+    it("2.12. Should mint successfully when user pays cash test token", async () => {
       const price = ethers.utils.parseUnits("1", DECIMALS);
       tokenInput.tokenURI = "ipfs://1.json";
       tokenInput.amount = price;
@@ -324,7 +349,7 @@ describe("ERC721", () => {
   describe("3. Mint With Royalty", () => {
     beforeEach(() => resetTokenInput());
 
-    it("3.1. Should be fail when address is zero address", async () => {
+    it("3.1. Should be fail when recipient address is zero address", async () => {
       await expect(
         erc721.mintWithRoyalty(
           ZERO_ADDRESS,
@@ -335,7 +360,18 @@ describe("ERC721", () => {
       ).to.be.revertedWith("Invalid address");
     });
 
-    it("3.2. Should be fail when amount is equal 0", async () => {
+    it("3.2. Should be fail when recipient address is a contract address", async () => {
+      await expect(
+        erc721.mintWithRoyalty(
+          cashTestToken.address,
+          tokenInput,
+          sampleSignature,
+          royaltyReceiver.address
+        )
+      ).to.be.revertedWith("Invalid address");
+    });
+
+    it("3.3. Should be fail when amount is equal 0", async () => {
       tokenInput.owner = government.address;
       tokenInput.price = ethers.utils.parseEther("1");
       await expect(
@@ -345,10 +381,10 @@ describe("ERC721", () => {
           sampleSignature,
           royaltyReceiver.address
         )
-      ).to.be.revertedWith("Invalid price and amount");
+      ).to.be.revertedWith("Invalid price or amount");
     });
 
-    it("3.3. Should be fail when price is equal 0", async () => {
+    it("3.4. Should be fail when price is equal 0", async () => {
       tokenInput.owner = government.address;
       tokenInput.amount = ethers.utils.parseEther("1");
       await expect(
@@ -358,10 +394,24 @@ describe("ERC721", () => {
           sampleSignature,
           royaltyReceiver.address
         )
-      ).to.be.revertedWith("Invalid price and amount");
+      ).to.be.revertedWith("Invalid price or amount");
     });
 
-    it("3.4. Should be fail when user pay native token and msg.value is not equal amount", async () => {
+    it("3.5. Should be fail when amount is less than price", async () => {
+      tokenInput.owner = government.address;
+      tokenInput.price = ethers.utils.parseEther("1");
+      tokenInput.amount = ethers.utils.parseEther("0.5");
+      await expect(
+        erc721.mintWithRoyalty(
+          users[0].address,
+          tokenInput,
+          sampleSignature,
+          royaltyReceiver.address
+        )
+      ).to.be.revertedWith("Invalid price or amount");
+    });
+
+    it("3.6. Should be fail when user pay native token and msg.value is not equal amount", async () => {
       tokenInput.price = ethers.utils.parseEther("1");
       tokenInput.amount = ethers.utils.parseEther("2");
       tokenInput.owner = government.address;
@@ -379,9 +429,10 @@ describe("ERC721", () => {
       ).to.be.revertedWith("Invalid amount of money");
     });
 
-    it("3.5. Should be fail when user pay native token less than price of token", async () => {
+    it("3.7. Should be fail when user pay native token and msg.value is not equal amount", async () => {
+      tokenInput.paymentToken = users[0].address;
       tokenInput.price = ethers.utils.parseEther("1");
-      tokenInput.amount = ethers.utils.parseEther("0.5");
+      tokenInput.amount = ethers.utils.parseEther("2");
       tokenInput.owner = government.address;
       await expect(
         erc721.mintWithRoyalty(
@@ -390,27 +441,13 @@ describe("ERC721", () => {
           sampleSignature,
           royaltyReceiver.address,
           {
-            value: ethers.utils.parseEther("0.5"),
+            value: tokenInput.amount,
           }
         )
-      ).to.be.revertedWith("Not enough money");
+      ).to.be.revertedWith("Invalid token address");
     });
 
-    it("3.6. Should be fail when user pay cash test token less than price of token", async () => {
-      tokenInput.price = ethers.utils.parseEther("1");
-      tokenInput.amount = ethers.utils.parseEther("0.5");
-      tokenInput.owner = government.address;
-      await expect(
-        erc721.mintWithRoyalty(
-          users[0].address,
-          tokenInput,
-          sampleSignature,
-          royaltyReceiver.address
-        )
-      ).to.be.revertedWith("Not enough money");
-    });
-
-    it("3.7. Should be fail when local government address is zero address", async () => {
+    it("3.8. Should be fail when local government address is zero address", async () => {
       tokenInput.price = ethers.utils.parseEther("1");
       tokenInput.amount = ethers.utils.parseEther("1");
       tokenInput.owner = ZERO_ADDRESS;
@@ -425,17 +462,32 @@ describe("ERC721", () => {
       ).to.be.revertedWith("Invalid address");
     });
 
-    it("3.8. Should be fail when transaction is not signed by verifier", async () => {
-      tokenInput.tokenURI = "ipfs://1.json";
-      tokenInput.amount = ethers.utils.parseEther("1");
+    it("3.9. Should be fail when local government address is a contract address", async () => {
       tokenInput.price = ethers.utils.parseEther("1");
-      tokenInput.owner = government.address;
-      const sig = await getSignature(tokenInput, owner);
+      tokenInput.amount = ethers.utils.parseEther("1");
+      tokenInput.owner = cashTestToken.address;
       await expect(
         erc721.mintWithRoyalty(
           users[0].address,
           tokenInput,
-          sig,
+          sampleSignature,
+          royaltyReceiver.address,
+          { value: tokenInput.amount }
+        )
+      ).to.be.revertedWith("Invalid address");
+    });
+
+    it("3.10. Should be fail when transaction is not signed by verifier", async () => {
+      tokenInput.tokenURI = "ipfs://1.json";
+      tokenInput.amount = ethers.utils.parseEther("1");
+      tokenInput.price = ethers.utils.parseEther("1");
+      tokenInput.owner = government.address;
+      const signature = await getSignature(tokenInput, owner);
+      await expect(
+        erc721.mintWithRoyalty(
+          users[0].address,
+          tokenInput,
+          signature,
           royaltyReceiver.address,
           {
             value: ethers.utils.parseEther("1"),
@@ -444,7 +496,7 @@ describe("ERC721", () => {
       ).to.be.revertedWith("Mint: Invalid signature");
     });
 
-    it("3.9. Should mint successfully when user pay native token", async () => {
+    it("3.11. Should mint successfully when user pay native token", async () => {
       tokenInput.tokenURI = "ipfs://1.json";
       tokenInput.price = ethers.utils.parseEther("1");
       tokenInput.amount = ethers.utils.parseEther("2");
@@ -499,7 +551,7 @@ describe("ERC721", () => {
       );
     });
 
-    it("3.10. Should mint successfully when user pay cash test token", async () => {
+    it("3.12. Should mint successfully when user pay cash test token", async () => {
       const price = ethers.utils.parseUnits("1", DECIMALS);
       tokenInput.tokenURI = "ipfs://1.json";
       tokenInput.amount = price;

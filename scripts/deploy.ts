@@ -19,8 +19,8 @@ async function main() {
   const decimal = 8;
 
   // Loading contract factory
-  const ERC721 = await ethers.getContractFactory("TokenERC721");
-  const CashTestToken = await ethers.getContractFactory("CashTestToken");
+  // const ERC721 = await ethers.getContractFactory("TokenERC721");
+  // const CashTestToken = await ethers.getContractFactory("CashTestToken");
   const TestNFT = await ethers.getContractFactory("TestNFT");
 
   // Deploy contracts

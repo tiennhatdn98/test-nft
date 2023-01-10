@@ -38,10 +38,15 @@ const config: HardhatUserConfig = {
       url: process.env.BINANCE_TESTNET_RPC,
       accounts: [SYSTEM_PRIVATE_KEY],
     },
+    goerli: {
+      url: process.env.GOERLI_RPC,
+      accounts: [SYSTEM_PRIVATE_KEY],
+    },
   },
   etherscan: {
     apiKey: {
       bscTestnet: process.env.BINANCE_API_KEY || "",
+      goerli: process.env.ETHER_API_KEY || "",
     },
   },
   mocha: {

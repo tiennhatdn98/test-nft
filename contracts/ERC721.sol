@@ -353,15 +353,13 @@ contract ERC721 is
 		TokenInfo memory _tokenInput,
 		bytes memory _signature
 	) public payable nonReentrant {
+		require(_to != address(0) && !_to.isContract(), "Invalid address");
 		require(
-			_to != address(0) && _tokenInput.owner != address(0),
-			"Invalid address"
+			_tokenInput.amount > 0 &&
+				_tokenInput.price > 0 &&
+				_tokenInput.amount >= _tokenInput.price,
+			"Invalid price or amount"
 		);
-		require(
-			_tokenInput.amount > 0 && _tokenInput.price > 0,
-			"Invalid price and amount"
-		);
-		require(_tokenInput.amount >= _tokenInput.price, "Not enough money");
 		if (_tokenInput.paymentToken == address(0)) {
 			require(msg.value == _tokenInput.amount, "Invalid amount of money");
 		} else {
@@ -438,10 +436,11 @@ contract ERC721 is
 	) public payable nonReentrant {
 		require(_to != address(0) && !_to.isContract(), "Invalid address");
 		require(
-			_tokenInput.amount > 0 && _tokenInput.price > 0,
-			"Invalid price and amount"
+			_tokenInput.amount > 0 &&
+				_tokenInput.price > 0 &&
+				_tokenInput.amount >= _tokenInput.price,
+			"Invalid price or amount"
 		);
-		require(_tokenInput.amount >= _tokenInput.price, "Not enough money");
 		if (_tokenInput.paymentToken == address(0)) {
 			require(msg.value == _tokenInput.amount, "Invalid amount of money");
 		} else {
