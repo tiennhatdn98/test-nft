@@ -51,7 +51,6 @@ const config: HardhatUserConfig = {
   },
   mocha: {
     timeout: 200000,
-    // useColors: true,
     reporter: "mocha-multi-reporters",
     reporterOptions: { configFile: "./mocha-report.json" },
   },

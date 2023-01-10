@@ -24,6 +24,10 @@ async function main() {
     //   address: "0xff402fF1b143eCE3888bf26E67b0EA46011d77FD",
     //   constructorArguments: ["NFT", "NFT"],
     // });
+    await run("verify:verify", {
+      address: "0x6BF9aF9716D95a2f3584431FA3cfDaBEa79433A9",
+      constructorArguments: ["Token", "TKN", 8],
+    });
   } catch (error) {
     console.log("Error: >> ", error);
   }

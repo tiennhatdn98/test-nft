@@ -13,7 +13,6 @@ import "@openzeppelin/contracts-upgradeable/utils/AddressUpgradeable.sol";
 import "./Authorizable.sol";
 import "./interfaces/IERC721.sol";
 import "./VerifySignature.sol";
-import "hardhat/console.sol";
 
 contract ERC721 is
 	ERC721Upgradeable,
@@ -24,11 +23,8 @@ contract ERC721 is
 	ReentrancyGuardUpgradeable
 {
 	using SafeERC20Upgradeable for IERC20Upgradeable;
-
 	using StringsUpgradeable for uint256;
-
 	using CountersUpgradeable for CountersUpgradeable.Counter;
-
 	using AddressUpgradeable for address payable;
 	using AddressUpgradeable for address;
 
@@ -47,6 +43,9 @@ contract ERC721 is
 	 */
 	uint256 public expiration;
 
+	/**
+	 * @notice Mapping token ID to token information
+	 */
 	mapping(uint256 => TokenInfo) public tokens;
 
 	/**
@@ -92,11 +91,6 @@ contract ERC721 is
 	);
 
 	/**
-	 * @notice Emit event when updating metadata of a token
-	 */
-	// event SetBaseURI(string indexed oldUri, string indexed newUri);
-
-	/**
 	 * @notice Emit event when set token URI
 	 */
 	event SetTokenURI(
@@ -134,7 +128,7 @@ contract ERC721 is
 	);
 
 	/**
-	 * @notice Emit event when someone claims
+	 * @notice Emit event when someone buy token
 	 */
 	event Bought(address buyer, uint256 tokenId);
 
@@ -184,6 +178,47 @@ contract ERC721 is
 	}
 
 	/**
+	 *  @notice Check is valid token input
+	 *
+	 *  @dev    Modifier
+	 *
+	 *          Name        	Meaning
+	 *  @param  _to      			Recipient address
+	 *  @param  _tokenInput  	Token input
+	 *  @param  _signature    Signature of transaction
+	 */
+	modifier isValidTokenInput(
+		address _to,
+		TokenInfo memory _tokenInput,
+		bytes memory _signature
+	) {
+		require(_to != address(0) && !_to.isContract(), "Invalid address");
+		require(
+			_tokenInput.amount > 0 &&
+				_tokenInput.price > 0 &&
+				_tokenInput.amount >= _tokenInput.price,
+			"Invalid price or amount"
+		);
+		if (_tokenInput.paymentToken == address(0)) {
+			require(msg.value == _tokenInput.amount, "Invalid amount of money");
+		} else {
+			require(
+				_tokenInput.paymentToken.isContract(),
+				"Invalid token address"
+			);
+		}
+		require(
+			_tokenInput.owner != address(0) && !_tokenInput.owner.isContract(),
+			"Invalid owner address"
+		);
+		require(
+			verify(verifier, _tokenInput, _signature),
+			"Mint: Invalid signature"
+		);
+		_;
+	}
+
+	/**
 	 * @dev See {IERC165-supportsInterface}.
 	 */
 	function supportsInterface(
@@ -196,29 +231,6 @@ contract ERC721 is
 	{
 		return super.supportsInterface(interfaceId);
 	}
-
-	/**
-	 * @dev Hook that is called before any token transfer. This includes minting
-	 * and burning.
-	 *
-	 * Calling conditions:
-	 *
-	 * - When `from` and `to` are both non-zero, ``from``'s `tokenId` will be
-	 * transferred to `to`.
-	 * - When `from` is zero, `tokenId` will be minted for `to`.
-	 * - When `to` is zero, ``from``'s `tokenId` will be burned.
-	 * - `from` cannot be the zero address.
-	 * - `to` cannot be the zero address.
-	 *
-	 * To learn more about hooks, head to xref:ROOT:extending-contracts.adoc#using-hooks[Using Hooks].
-	 */
-	// function _beforeTokenTransfer(
-	// 	address from,
-	// 	address to,
-	// 	uint256 tokenId
-	// ) internal override(ERC721Upgradeable, ERC721EnumerableUpgradeable) {
-	// 	super._beforeTokenTransfer(from, to, tokenId);
-	// }
 
 	/**
 	 *  @notice Set token URI by token ID
@@ -352,61 +364,23 @@ contract ERC721 is
 		address _to,
 		TokenInfo memory _tokenInput,
 		bytes memory _signature
-	) public payable nonReentrant {
-		require(_to != address(0) && !_to.isContract(), "Invalid address");
-		require(
-			_tokenInput.amount > 0 &&
-				_tokenInput.price > 0 &&
-				_tokenInput.amount >= _tokenInput.price,
-			"Invalid price or amount"
-		);
-		if (_tokenInput.paymentToken == address(0)) {
-			require(msg.value == _tokenInput.amount, "Invalid amount of money");
-		} else {
-			require(
-				_tokenInput.paymentToken.isContract(),
-				"Invalid token address"
-			);
-		}
-		require(
-			_tokenInput.owner != address(0) && !_tokenInput.owner.isContract(),
-			"Invalid owner address"
-		);
-		require(
-			verify(verifier, _tokenInput, _signature),
-			"Mint: Invalid signature"
-		);
+	)
+		public
+		payable
+		isValidTokenInput(_to, _tokenInput, _signature)
+		nonReentrant
+		returns (uint256 tokenId)
+	{
 		lastId.increment();
-		_safeMint(_to, lastId.current());
-		// _tokenURIs[lastId.current()] = _tokenInput.tokenURI;
-		// Update status
-		statusOf[lastId.current()] = true;
-		// Update expiration
-		expirationOf[lastId.current()] = block.timestamp + expiration;
-		// Update owner balance
-		(, uint256 royaltyFraction) = royaltyInfo(
-			lastId.current(),
-			_tokenInput.price
-		);
-		ownerBalanceOf[_tokenInput.paymentToken][
-			_tokenInput.owner
-		] += (_tokenInput.price - royaltyFraction);
-		tokenIdOf[_signature] = lastId.current();
-		_tokenInput.tokenId = lastId.current();
-		tokens[lastId.current()] = _tokenInput;
-		if (_tokenInput.amount > _tokenInput.price) {
-			changeOf[_tokenInput.paymentToken] +=
-				_tokenInput.amount -
-				_tokenInput.price;
-		}
-		if (_tokenInput.paymentToken != address(0)) {
-			_handleTransfer(
-				_msgSender(),
-				address(this),
-				_tokenInput.paymentToken,
-				_tokenInput.amount
-			);
-		}
+		tokenId = lastId.current();
+		_safeMint(_to, tokenId);
+		// _tokenURIs[tokenId] = _tokenInput.tokenURI;
+		statusOf[tokenId] = true;
+		expirationOf[tokenId] = block.timestamp + expiration;
+		tokenIdOf[_signature] = tokenId;
+		_tokenInput.tokenId = tokenId;
+		tokens[tokenId] = _tokenInput;
+		_updateBalance(_msgSender(), address(this), _tokenInput);
 	}
 
 	/**
@@ -433,69 +407,34 @@ contract ERC721 is
 		TokenInfo memory _tokenInput,
 		bytes memory _signature,
 		address _royaltyReceiver
-	) public payable nonReentrant {
-		require(_to != address(0) && !_to.isContract(), "Invalid address");
-		require(
-			_tokenInput.amount > 0 &&
-				_tokenInput.price > 0 &&
-				_tokenInput.amount >= _tokenInput.price,
-			"Invalid price or amount"
-		);
-		if (_tokenInput.paymentToken == address(0)) {
-			require(msg.value == _tokenInput.amount, "Invalid amount of money");
-		} else {
-			require(
-				_tokenInput.paymentToken.isContract(),
-				"Invalid token address"
-			);
-		}
-		require(
-			_tokenInput.owner != address(0) && !_tokenInput.owner.isContract(),
-			"Invalid address"
-		);
-		require(
-			verify(verifier, _tokenInput, _signature),
-			"Mint: Invalid signature"
-		);
+	)
+		public
+		payable
+		isValidTokenInput(_to, _tokenInput, _signature)
+		nonReentrant
+		returns (uint256 tokenId)
+	{
 		lastId.increment();
-		_safeMint(_to, lastId.current());
-		// _tokenURIs[lastId.current()] = _tokenInput.tokenURI;
-		statusOf[lastId.current()] = true;
-		expirationOf[lastId.current()] = block.timestamp + expiration;
-		tokenIdOf[_signature] = lastId.current();
-		_tokenInput.tokenId = lastId.current();
-		tokens[lastId.current()] = _tokenInput;
+		tokenId = lastId.current();
+		_safeMint(_to, tokenId);
+		// _tokenURIs[tokenId] = _tokenInput.tokenURI;
+		statusOf[tokenId] = true;
+		expirationOf[tokenId] = block.timestamp + expiration;
+		tokenIdOf[_signature] = tokenId;
+		_tokenInput.tokenId = tokenId;
+		tokens[tokenId] = _tokenInput;
 		_royaltyReceiver == address(0)
 			? _setTokenRoyalty(
-				lastId.current(),
+				tokenId,
 				defaultRoyaltyInfo.receiver,
 				defaultRoyaltyInfo.royaltyFraction
 			)
 			: _setTokenRoyalty(
-				lastId.current(),
+				tokenId,
 				_royaltyReceiver,
 				defaultRoyaltyInfo.royaltyFraction
 			);
-		(, uint256 royaltyFraction) = royaltyInfo(
-			lastId.current(),
-			_tokenInput.price
-		);
-		ownerBalanceOf[_tokenInput.paymentToken][
-			_tokenInput.owner
-		] += (_tokenInput.price - royaltyFraction);
-		if (_tokenInput.amount > _tokenInput.price) {
-			changeOf[_tokenInput.paymentToken] +=
-				_tokenInput.amount -
-				_tokenInput.price;
-		}
-		if (_tokenInput.paymentToken != address(0)) {
-			_handleTransfer(
-				_msgSender(),
-				address(this),
-				_tokenInput.paymentToken,
-				_tokenInput.amount
-			);
-		}
+		_updateBalance(_msgSender(), address(this), _tokenInput);
 	}
 
 	/**
@@ -642,17 +581,45 @@ contract ERC721 is
 		address _paymentToken,
 		uint256 _amount
 	) private {
-		if (_paymentToken == address(0)) {
-			require(_amount <= address(this).balance, "Invalid amount");
-			payable(_to).sendValue(_amount);
-		} else {
-			IERC20Upgradeable(_paymentToken).safeTransferFrom(
+		_paymentToken == address(0)
+			? payable(_to).sendValue(_amount)
+			: IERC20Upgradeable(_paymentToken).safeTransferFrom(
 				_from,
 				_to,
 				_amount
 			);
-		}
 	}
 
-	function _setTokenStates(TokenInfo memory _tokenInput) private {}
+	/**
+	 *  @notice Update balance data and take money from user when mint token
+	 *
+	 * 	@dev 		Private function
+	 *
+	 *          Name        	Meaning
+	 *  @param  _from       	Mint token caller
+	 *  @param  _to   				Recipient address
+	 *  @param  _tokenInput  	Token info
+	 */
+	function _updateBalance(
+		address _from,
+		address _to,
+		TokenInfo memory _tokenInput
+	) private {
+		ownerBalanceOf[_tokenInput.paymentToken][
+			_tokenInput.owner
+		] += _tokenInput.price;
+		if (_tokenInput.amount > _tokenInput.price) {
+			changeOf[_tokenInput.paymentToken] +=
+				_tokenInput.amount -
+				_tokenInput.price;
+		}
+		if (_tokenInput.paymentToken != address(0)) {
+			_handleTransfer(
+				_from,
+				_to,
+				_tokenInput.paymentToken,
+				_tokenInput.amount
+			);
+		}
+	}
 }

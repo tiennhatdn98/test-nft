@@ -280,7 +280,7 @@ describe("ERC721", () => {
 
       const currentBlockTimestamp = await blockTimestamp();
       const currentTokenId = await erc721.lastId();
-      const [royaltyAddress, royaltyFraction] = await erc721.royaltyInfo(
+      const [royaltyAddress, _] = await erc721.royaltyInfo(
         currentTokenId,
         tokenInput.price
       );
@@ -298,7 +298,7 @@ describe("ERC721", () => {
       );
       expect(
         await erc721.ownerBalanceOf(tokenInput.paymentToken, government.address)
-      ).to.be.equal(tokenInput.price.sub(royaltyFraction));
+      ).to.be.equal(tokenInput.price);
       expect(await erc721.tokenIdOf(signature)).to.be.equal(currentTokenId);
       expect(royaltyAddress).to.be.equal(royaltyReceiver.address);
     });
@@ -323,10 +323,7 @@ describe("ERC721", () => {
 
       const currentBlockTimestamp = BigNumber.from(await blockTimestamp());
       const currentTokenId = await erc721.lastId();
-      const [_, royaltyFraction] = await erc721.royaltyInfo(
-        currentTokenId,
-        tokenInput.price
-      );
+      const [royaltyAddress] = await erc721.royaltyInfo(currentTokenId, price);
 
       expect(currentTokenId).to.be.equal(oldTokenId.add(1));
       expect(await erc721.tokenURI(currentTokenId)).to.be.equal(
@@ -341,8 +338,9 @@ describe("ERC721", () => {
       );
       expect(
         await erc721.ownerBalanceOf(tokenInput.paymentToken, government.address)
-      ).to.be.equal(tokenInput.price.sub(royaltyFraction));
+      ).to.be.equal(tokenInput.price);
       expect(await erc721.tokenIdOf(signature)).to.be.equal(currentTokenId);
+      expect(royaltyAddress).to.be.equal(royaltyReceiver.address);
     });
   });
 
@@ -459,7 +457,7 @@ describe("ERC721", () => {
           royaltyReceiver.address,
           { value: tokenInput.amount }
         )
-      ).to.be.revertedWith("Invalid address");
+      ).to.be.revertedWith("Invalid owner address");
     });
 
     it("3.9. Should be fail when local government address is a contract address", async () => {
@@ -474,7 +472,7 @@ describe("ERC721", () => {
           royaltyReceiver.address,
           { value: tokenInput.amount }
         )
-      ).to.be.revertedWith("Invalid address");
+      ).to.be.revertedWith("Invalid owner address");
     });
 
     it("3.10. Should be fail when transaction is not signed by verifier", async () => {
@@ -543,7 +541,7 @@ describe("ERC721", () => {
       );
       expect(
         await erc721.ownerBalanceOf(tokenInput.paymentToken, government.address)
-      ).to.be.equal(tokenInput.price.sub(royaltyFraction));
+      ).to.be.equal(tokenInput.price);
       expect(await erc721.tokenIdOf(signature)).to.be.equal(currentTokenId);
       expect(royaltyAddress).to.be.equal(royaltyReceiver.address);
       expect(royaltyFraction).to.be.equal(
@@ -593,7 +591,7 @@ describe("ERC721", () => {
       );
       expect(
         await erc721.ownerBalanceOf(tokenInput.paymentToken, government.address)
-      ).to.be.equal(tokenInput.price.sub(royaltyFraction));
+      ).to.be.equal(tokenInput.price);
       expect(await erc721.tokenIdOf(signature)).to.be.equal(tokenId);
       expect(royaltyAddress).to.be.equal(royaltyReceiver.address);
       expect(royaltyFraction).to.be.equal(
@@ -970,8 +968,7 @@ describe("ERC721", () => {
     });
 
     it("11.3. Should be successful when owner withdraws amount of all owned native token", async () => {
-      const [_, royaltyFraction] = await erc721.royaltyInfo(1, price);
-      const claimableAmount = price.sub(royaltyFraction).mul(2);
+      const claimableAmount = price.mul(2);
 
       await expect(
         erc721.claim(ZERO_ADDRESS, government.address, claimableAmount)
@@ -1013,8 +1010,7 @@ describe("ERC721", () => {
     });
 
     it("11.5. Should be successful when user claims amount of all owned cash test token", async () => {
-      const [_, royaltyFraction] = await erc721.royaltyInfo(2, tokenPrice);
-      const claimableAmount = tokenPrice.sub(royaltyFraction);
+      const claimableAmount = tokenPrice;
       await expect(
         erc721
           .connect(government)

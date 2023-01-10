@@ -126,13 +126,13 @@ contract VerifySignature {
 
 		assembly {
 			/*
-            First 32 bytes stores the length of the signature
+				First 32 bytes stores the length of the signature
 
-            add(sig, 32) = pointer of sig + 32
-            effectively, skips first 32 bytes of signature
+				add(sig, 32) = pointer of sig + 32
+				effectively, skips first 32 bytes of signature
 
-            mload(p) loads next 32 bytes starting at the memory address p into memory
-            */
+				mload(p) loads next 32 bytes starting at the memory address p into memory
+			*/
 
 			// first 32 bytes, after the length prefix
 			r := mload(add(sig, 32))
