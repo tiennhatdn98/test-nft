@@ -71,7 +71,6 @@ contract ERC721 is
 	/**
 	 * @notice Mapping token ID and URI to store token URIs
 	 */
-	// mapping(uint256 => string) private _tokenURIs;
 
 	/**
 	 * @notice Mapping signature to token ID
@@ -178,20 +177,20 @@ contract ERC721 is
 	}
 
 	/**
-	 *  @notice Check is valid token input
+	 *  @notice Check token input is valid or not
 	 *
-	 *  @dev    Modifier
+	 *  @dev    Private function
 	 *
 	 *          Name        	Meaning
 	 *  @param  _to      			Recipient address
 	 *  @param  _tokenInput  	Token input
 	 *  @param  _signature    Signature of transaction
 	 */
-	modifier isValidTokenInput(
+	function _isValidTokenInput(
 		address _to,
 		TokenInfo memory _tokenInput,
 		bytes memory _signature
-	) {
+	) private {
 		require(_to != address(0) && !_to.isContract(), "Invalid address");
 		require(
 			_tokenInput.amount > 0 &&
@@ -200,7 +199,7 @@ contract ERC721 is
 			"Invalid price or amount"
 		);
 		if (_tokenInput.paymentToken == address(0)) {
-			require(msg.value == _tokenInput.amount, "Invalid amount of money");
+			require(msg.value == _tokenInput.amount, "Invalid price or amount");
 		} else {
 			require(
 				_tokenInput.paymentToken.isContract(),
@@ -211,11 +210,7 @@ contract ERC721 is
 			_tokenInput.owner != address(0) && !_tokenInput.owner.isContract(),
 			"Invalid owner address"
 		);
-		require(
-			verify(verifier, _tokenInput, _signature),
-			"Mint: Invalid signature"
-		);
-		_;
+		require(verify(verifier, _tokenInput, _signature), "Invalid signature");
 	}
 
 	/**
@@ -246,11 +241,8 @@ contract ERC721 is
 		uint256 _tokenId,
 		string memory _tokenURI,
 		bytes memory _signature
-	) public {
-		require(
-			_exists(_tokenId),
-			"ERC721Metadata: URI set of nonexistent token"
-		);
+	) external {
+		require(_exists(_tokenId), "Nonexistent token");
 		TokenInfo memory _tokenInput = TokenInfo(
 			_tokenId,
 			0,
@@ -260,12 +252,7 @@ contract ERC721 is
 			_tokenURI,
 			true
 		);
-		require(
-			verify(verifier, _tokenInput, _signature),
-			"SetTokenURI: Invalid signature"
-		);
-		// string memory oldTokenURI = _tokenURIs[_tokenId];
-		// _tokenURIs[_tokenId] = _tokenURI;
+		require(verify(verifier, _tokenInput, _signature), "Invalid signature");
 		string memory oldTokenURI = tokens[_tokenId].tokenURI;
 		tokens[_tokenId].tokenURI = _tokenURI;
 		emit SetTokenURI(_tokenId, oldTokenURI, _tokenURI);
@@ -284,11 +271,8 @@ contract ERC721 is
 		uint256 _tokenId,
 		bool _status,
 		bytes memory _signature
-	) public {
-		require(
-			_exists(_tokenId),
-			"ERC721Metadata: URI set of nonexistent token"
-		);
+	) external {
+		require(_exists(_tokenId), "Nonexistent token");
 		require(statusOf[_tokenId] != _status, "Duplicate value");
 		TokenInfo memory _tokenInput = TokenInfo(
 			_tokenId,
@@ -299,10 +283,7 @@ contract ERC721 is
 			"",
 			_status
 		);
-		require(
-			verify(verifier, _tokenInput, _signature),
-			"SetTokenStatus: Invalid signature"
-		);
+		require(verify(verifier, _tokenInput, _signature), "Invalid signature");
 		statusOf[_tokenId] = _status;
 		tokens[_tokenId].status = _status;
 		emit SetTokenStatus(_tokenId, _status);
@@ -320,10 +301,7 @@ contract ERC721 is
 	function tokenURI(
 		uint256 _tokenId
 	) public view virtual override returns (string memory) {
-		require(
-			_exists(_tokenId),
-			"ERC721Metadata: URI query for nonexistent token."
-		);
+		require(_exists(_tokenId), "Nonexistent token.");
 		return tokens[_tokenId].tokenURI;
 	}
 
@@ -335,8 +313,8 @@ contract ERC721 is
 	 *          Name            Meaning
 	 *  @param  _expiration     New expired period of token
 	 */
-	function setExpiration(uint256 _expiration) public onlyAdmin {
-		require(_expiration != 0, "Invalid expired period");
+	function setExpiration(uint256 _expiration) external onlyAdmin {
+		require(_expiration != 0, "Invalid expiration");
 		uint256 oldExpiration = expiration;
 		expiration = _expiration;
 		emit SetExpiration(oldExpiration, expiration);
@@ -364,17 +342,11 @@ contract ERC721 is
 		address _to,
 		TokenInfo memory _tokenInput,
 		bytes memory _signature
-	)
-		public
-		payable
-		isValidTokenInput(_to, _tokenInput, _signature)
-		nonReentrant
-		returns (uint256 tokenId)
-	{
+	) external payable nonReentrant returns (uint256 tokenId) {
+		_isValidTokenInput(_to, _tokenInput, _signature);
 		lastId.increment();
 		tokenId = lastId.current();
 		_safeMint(_to, tokenId);
-		// _tokenURIs[tokenId] = _tokenInput.tokenURI;
 		statusOf[tokenId] = true;
 		expirationOf[tokenId] = block.timestamp + expiration;
 		tokenIdOf[_signature] = tokenId;
@@ -407,17 +379,11 @@ contract ERC721 is
 		TokenInfo memory _tokenInput,
 		bytes memory _signature,
 		address _royaltyReceiver
-	)
-		public
-		payable
-		isValidTokenInput(_to, _tokenInput, _signature)
-		nonReentrant
-		returns (uint256 tokenId)
-	{
+	) external payable nonReentrant returns (uint256 tokenId) {
+		_isValidTokenInput(_to, _tokenInput, _signature);
 		lastId.increment();
 		tokenId = lastId.current();
 		_safeMint(_to, tokenId);
-		// _tokenURIs[tokenId] = _tokenInput.tokenURI;
 		statusOf[tokenId] = true;
 		expirationOf[tokenId] = block.timestamp + expiration;
 		tokenIdOf[_signature] = tokenId;
@@ -508,10 +474,7 @@ contract ERC721 is
 	 */
 	function transfer(address _to, uint256 _tokenId) external {
 		require(_msgSender() != _to, "Transfer to yourself");
-		require(
-			_exists(_tokenId),
-			"ERC721Metadata: URI query for nonexistent token."
-		);
+		require(_exists(_tokenId), "Nonexistent token.");
 		require(statusOf[_tokenId], "Token is deactive");
 		expirationOf[_tokenId] = block.timestamp + expiration;
 		safeTransferFrom(_msgSender(), _to, _tokenId);
@@ -528,11 +491,8 @@ contract ERC721 is
 	 *  Emit event {Bought}
 	 */
 	function buy(uint256 _tokenId) external payable nonReentrant {
-		require(
-			_exists(_tokenId),
-			"ERC721Metadata: URI query for nonexistent token."
-		);
-		require(ownerOf(_tokenId) != _msgSender(), "Already owned this token");
+		require(_exists(_tokenId), "Nonexistent token.");
+		require(ownerOf(_tokenId) != _msgSender(), "Already owned");
 		require(statusOf[_tokenId], "Token is deactive");
 
 		TokenInfo memory token = tokens[_tokenId];

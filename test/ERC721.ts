@@ -4,10 +4,9 @@ import { expect } from "chai";
 import { BigNumber, Contract } from "ethers";
 import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
 import { blockTimestamp } from "./utils";
-import { token } from "../typechain-types/@openzeppelin/contracts";
+import { AddressZero, MaxUint256 } from "@ethersproject/constants";
+import * as helpers from "@nomicfoundation/hardhat-network-helpers";
 
-const helpers = require("@nomicfoundation/hardhat-network-helpers");
-const { AddressZero, MaxUint256 } = require("@ethersproject/constants");
 const ZERO_ADDRESS = AddressZero;
 const MAX_UINT256 = MaxUint256;
 const TOKEN_NAME = "Token";
@@ -36,7 +35,7 @@ describe("ERC721", () => {
   let tokenId: BigNumber;
   let tokenInput: TokenInfoStruct;
 
-  const resetTokenInput = () => {
+  const resetTokenInput = (): void => {
     tokenInput = {
       tokenId: 0,
       tokenURI: "",
@@ -69,7 +68,7 @@ describe("ERC721", () => {
     caller: SignerWithAddress,
     to: string,
     tokenInput: TokenInfoStruct
-  ) => {
+  ): Promise<void> => {
     const signature = await getSignature(tokenInput, verifier);
 
     if (tokenInput.paymentToken === ZERO_ADDRESS) {
@@ -86,7 +85,7 @@ describe("ERC721", () => {
     to: string,
     tokenInput: TokenInfoStruct,
     royaltyReceiver: string
-  ) => {
+  ): Promise<void> => {
     const signature = await getSignature(tokenInput, verifier);
 
     if (tokenInput.paymentToken === ZERO_ADDRESS) {
@@ -213,7 +212,7 @@ describe("ERC721", () => {
         erc721.mint(users[0].address, tokenInput, signature, {
           value: ethers.utils.parseEther("1"),
         })
-      ).to.be.revertedWith("Invalid amount of money");
+      ).to.be.revertedWith("Invalid price or amount");
     });
 
     it("2.7. Should be fail when user pays cash test token and payment token is not a contract address", async () => {
@@ -258,7 +257,7 @@ describe("ERC721", () => {
         erc721.mint(users[0].address, tokenInput, signature, {
           value: tokenInput.amount,
         })
-      ).to.be.revertedWith("Mint: Invalid signature");
+      ).to.be.revertedWith("Invalid signature");
     });
 
     it("2.11. Should mint successfully when user pays native token", async () => {
@@ -273,10 +272,13 @@ describe("ERC721", () => {
         erc721.connect(users[0]).mint(users[0].address, tokenInput, signature, {
           value: tokenInput.amount,
         })
-      ).to.changeEtherBalances(
-        [users[0].address, erc721.address],
-        [tokenInput.amount.mul(-1), tokenInput.amount]
-      );
+      )
+        .to.emit(erc721, "Transfer")
+        .withArgs(ZERO_ADDRESS, users[0].address, tokenId.add(1))
+        .to.changeEtherBalances(
+          [users[0].address, erc721.address],
+          [tokenInput.amount.mul(-1), tokenInput.amount]
+        );
 
       const currentBlockTimestamp = await blockTimestamp();
       const currentTokenId = await erc721.lastId();
@@ -315,11 +317,14 @@ describe("ERC721", () => {
 
       await expect(
         erc721.connect(users[0]).mint(users[0].address, tokenInput, signature)
-      ).to.changeTokenBalances(
-        cashTestToken,
-        [users[0].address, erc721.address],
-        [price.mul(-1), price]
-      );
+      )
+        .to.emit(erc721, "Transfer")
+        .withArgs(ZERO_ADDRESS, users[0].address, oldTokenId.add(1))
+        .to.changeTokenBalances(
+          cashTestToken,
+          [users[0].address, erc721.address],
+          [price.mul(-1), price]
+        );
 
       const currentBlockTimestamp = BigNumber.from(await blockTimestamp());
       const currentTokenId = await erc721.lastId();
@@ -424,7 +429,7 @@ describe("ERC721", () => {
             value: ethers.utils.parseEther("1"),
           }
         )
-      ).to.be.revertedWith("Invalid amount of money");
+      ).to.be.revertedWith("Invalid price or amount");
     });
 
     it("3.7. Should be fail when user pay native token and msg.value is not equal amount", async () => {
@@ -491,7 +496,7 @@ describe("ERC721", () => {
             value: ethers.utils.parseEther("1"),
           }
         )
-      ).to.be.revertedWith("Mint: Invalid signature");
+      ).to.be.revertedWith("Invalid signature");
     });
 
     it("3.11. Should mint successfully when user pay native token", async () => {
@@ -514,10 +519,13 @@ describe("ERC721", () => {
               value: tokenInput.amount,
             }
           )
-      ).to.changeEtherBalances(
-        [users[0].address, erc721.address],
-        [tokenInput.amount.mul(-1), tokenInput.amount]
-      );
+      )
+        .to.emit(erc721, "Transfer")
+        .withArgs(ZERO_ADDRESS, users[0].address, oldTokenId.add(1))
+        .to.changeEtherBalances(
+          [users[0].address, erc721.address],
+          [tokenInput.amount.mul(-1), tokenInput.amount]
+        );
 
       const tokenId = await erc721.lastId();
       const [royaltyAddress, royaltyFraction] = await erc721.royaltyInfo(
@@ -568,11 +576,14 @@ describe("ERC721", () => {
             signature,
             royaltyReceiver.address
           )
-      ).to.changeTokenBalances(
-        cashTestToken,
-        [users[0].address, erc721.address],
-        [price.mul(-1), price]
-      );
+      )
+        .to.emit(erc721, "Transfer")
+        .withArgs(ZERO_ADDRESS, users[0].address, oldTokenId.add(1))
+        .to.changeTokenBalances(
+          cashTestToken,
+          [users[0].address, erc721.address],
+          [price.mul(-1), price]
+        );
 
       const currentBlockTimestamp = await blockTimestamp();
       const tokenId = await erc721.lastId();
@@ -640,7 +651,7 @@ describe("ERC721", () => {
       ).to.be.revertedWith("Ownable: Invalid address");
     });
 
-    it("5.3. Should be fail when setting zero address", async () => {
+    it("5.3. Should be fail when setting a contract address", async () => {
       await expect(
         erc721.connect(admin).setVerifier(cashTestToken.address)
       ).to.be.revertedWith("Ownable: Invalid address");
@@ -663,7 +674,7 @@ describe("ERC721", () => {
 
     it("6.2. Should be fail when setting 0", async () => {
       await expect(erc721.connect(admin).setExpiration(0)).to.be.revertedWith(
-        "Invalid expired period"
+        "Invalid expiration"
       );
     });
 
@@ -691,19 +702,16 @@ describe("ERC721", () => {
     it("7.1. Should be fail when token ID is nonexistent", async () => {
       await expect(
         erc721.setTokenURI(NONEXISTENT_TOKEN_ID, tokenURI, sampleSignature)
-      ).to.be.revertedWith("ERC721Metadata: URI set of nonexistent token");
+      ).to.be.revertedWith("Nonexistent token");
     });
 
     it("7.2. Should be fail when transaction is not signed by verifier", async () => {
       tokenInput.tokenId = tokenId;
       tokenInput.tokenURI = "ipfs://2.json";
-      tokenInput.amount = 0;
-      tokenInput.price = 0;
-      const signature = await getSignature(tokenInput, verifier);
-
+      const signature = await getSignature(tokenInput, owner);
       await expect(
-        erc721.setTokenURI(tokenId, tokenURI, signature)
-      ).to.be.revertedWith("SetTokenURI: Invalid signature");
+        erc721.setTokenURI(tokenId, tokenInput.tokenURI, signature)
+      ).to.be.revertedWith("Invalid signature");
     });
 
     it("7.3. Should be fail when signature data is invalid", async () => {
@@ -712,13 +720,11 @@ describe("ERC721", () => {
       const tokenId = await erc721.lastId();
       tokenInput.tokenId = tokenId;
       tokenInput.tokenURI = wrongTokenURI;
-      tokenInput.amount = 0;
-      tokenInput.price = 0;
       const signature = await getSignature(tokenInput, verifier);
 
       await expect(
         erc721.setTokenURI(tokenId, correctTokenURI, signature)
-      ).to.be.revertedWith("SetTokenURI: Invalid signature");
+      ).to.be.revertedWith("Invalid signature");
     });
 
     it("7.4. Should set successfully", async () => {
@@ -727,8 +733,6 @@ describe("ERC721", () => {
       const oldTokenURI = await erc721.tokenURI(tokenId);
       tokenInput.tokenId = tokenId;
       tokenInput.tokenURI = newTokenURI;
-      tokenInput.amount = 0;
-      tokenInput.price = 0;
       const signature = await getSignature(tokenInput, verifier);
 
       await expect(erc721.setTokenURI(tokenId, newTokenURI, signature))
@@ -758,7 +762,7 @@ describe("ERC721", () => {
     it("8.1. Should be fail when set a token is nonexistent", async () => {
       await expect(
         erc721.setTokenStatus(NONEXISTENT_TOKEN_ID, false, sampleSignature)
-      ).to.be.revertedWith("ERC721Metadata: URI set of nonexistent token");
+      ).to.be.revertedWith("Nonexistent token");
     });
 
     it("8.2. Should be fail when set value is equal status of current token", async () => {
@@ -771,7 +775,7 @@ describe("ERC721", () => {
       const signature = await getSignature(tokenInput, owner);
       await expect(
         erc721.setTokenStatus(tokenId, !statusOfToken, signature)
-      ).to.be.revertedWith("SetTokenStatus: Invalid signature");
+      ).to.be.revertedWith("Invalid signature");
     });
 
     it("8.4. Should be fail when signature is invalid", async () => {
@@ -779,7 +783,7 @@ describe("ERC721", () => {
       const signature = await getSignature(tokenInput, verifier);
       await expect(
         erc721.setTokenStatus(tokenId, !statusOfToken, signature)
-      ).to.be.revertedWith("SetTokenStatus: Invalid signature");
+      ).to.be.revertedWith("Invalid signature");
     });
 
     it("8.5. Should set successfully", async () => {
@@ -801,16 +805,15 @@ describe("ERC721", () => {
       tokenInput.owner = government.address;
       await mintToken(users[0], users[0].address, tokenInput);
       tokenId = await erc721.lastId();
-      tokenId = await erc721.lastId();
     });
 
     it("9.1. Should be fail when get a token is nonexistent", async () => {
       await expect(erc721.tokenURI(NONEXISTENT_TOKEN_ID)).to.be.revertedWith(
-        "ERC721Metadata: URI query for nonexistent token."
+        "Nonexistent token."
       );
     });
 
-    it("9.2. Should return exact token URI", async () => {
+    it("9.2. Should return exactly token URI", async () => {
       expect(await erc721.tokenURI(tokenId)).to.be.equal(tokenInput.tokenURI);
     });
 
@@ -883,10 +886,13 @@ describe("ERC721", () => {
         erc721
           .connect(owner)
           .withdraw(ZERO_ADDRESS, owner.address, changeAmount)
-      ).changeEtherBalances(
-        [erc721.address, owner.address],
-        [changeAmount.mul(-1), changeAmount]
-      );
+      )
+        .to.emit(erc721, "Withdrawn")
+        .withArgs(ZERO_ADDRESS, owner.address, changeAmount)
+        .changeEtherBalances(
+          [erc721.address, owner.address],
+          [changeAmount.mul(-1), changeAmount]
+        );
       expect(await erc721.changeOf(ZERO_ADDRESS)).to.be.equal(
         oldChange.sub(changeAmount)
       );
@@ -898,11 +904,14 @@ describe("ERC721", () => {
         erc721
           .connect(owner)
           .withdraw(cashTestToken.address, owner.address, tokenchangeAmount)
-      ).changeTokenBalances(
-        cashTestToken,
-        [erc721.address, owner.address],
-        [tokenchangeAmount.mul(-1), tokenchangeAmount]
-      );
+      )
+        .to.emit(erc721, "Withdrawn")
+        .withArgs(cashTestToken.address, owner.address, tokenchangeAmount)
+        .changeTokenBalances(
+          cashTestToken,
+          [erc721.address, owner.address],
+          [tokenchangeAmount.mul(-1), tokenchangeAmount]
+        );
       expect(await erc721.changeOf(cashTestToken.address)).to.be.equal(
         oldChange.sub(tokenchangeAmount)
       );
@@ -996,14 +1005,15 @@ describe("ERC721", () => {
       const tx = erc721
         .connect(government)
         .claim(cashTestToken.address, government.address, _amount);
+
       await expect(tx)
         .to.emit(erc721, "Claimed")
-        .withArgs(cashTestToken.address, government.address, _amount);
-      await expect(tx).changeTokenBalances(
-        cashTestToken,
-        [erc721.address, government.address],
-        [_amount.mul(-1), _amount]
-      );
+        .withArgs(cashTestToken.address, government.address, _amount)
+        .changeTokenBalances(
+          cashTestToken,
+          [erc721.address, government.address],
+          [_amount.mul(-1), _amount]
+        );
       expect(
         await erc721.ownerBalanceOf(cashTestToken.address, government.address)
       ).to.be.equal(oldBalance.sub(_amount));
@@ -1035,10 +1045,13 @@ describe("ERC721", () => {
         erc721
           .connect(government)
           .claim(ZERO_ADDRESS, government.address, price)
-      ).changeEtherBalances(
-        [erc721.address, government.address],
-        [price.mul(-1), price]
-      );
+      )
+        .to.emit(erc721, "Claimed")
+        .withArgs(ZERO_ADDRESS, government.address, price)
+        .changeEtherBalances(
+          [erc721.address, government.address],
+          [price.mul(-1), price]
+        );
       expect(
         await erc721.ownerBalanceOf(ZERO_ADDRESS, government.address)
       ).to.be.equal(oldBalance.sub(price));
@@ -1054,14 +1067,6 @@ describe("ERC721", () => {
       tokenInput.owner = government.address;
       await mintToken(users[0], users[0].address, tokenInput);
       tokenId = await erc721.lastId();
-
-      resetTokenInput();
-      tokenInput.tokenURI = "ipfs://2.json";
-      tokenInput.price = ethers.utils.parseUnits("1", DECIMALS);
-      tokenInput.amount = ethers.utils.parseUnits("1", DECIMALS);
-      tokenInput.paymentToken = cashTestToken.address;
-      tokenInput.owner = government.address;
-      await mintToken(users[0], users[0].address, tokenInput);
     });
 
     it("12.1. Should be fail when sender transfer token to self", async () => {
@@ -1081,7 +1086,7 @@ describe("ERC721", () => {
         erc721
           .connect(users[0])
           .transfer(users[1].address, NONEXISTENT_TOKEN_ID)
-      ).to.be.revertedWith("ERC721Metadata: URI query for nonexistent token.");
+      ).to.be.revertedWith("Nonexistent token.");
     });
 
     it("12.4. Should be fail when token is deactive", async () => {
@@ -1115,7 +1120,6 @@ describe("ERC721", () => {
       );
       const tokenId = await erc721.lastId();
       const expiration = await erc721.expiration();
-      const currentBlockTimestamp = await blockTimestamp();
 
       await expect(erc721.connect(users[0]).transfer(users[1].address, tokenId))
         .to.emit(erc721, "Transfer")
@@ -1125,8 +1129,9 @@ describe("ERC721", () => {
           [users[0].address, users[1].address],
           [-1, 1]
         );
+      const currentBlockTimestamp = await blockTimestamp();
 
-      expect(await erc721.expirationOf(tokenId)).to.be.greaterThanOrEqual(
+      expect(await erc721.expirationOf(tokenId)).to.be.equal(
         currentBlockTimestamp.add(expiration)
       );
       expect(await erc721.ownerOf(tokenId)).to.be.equal(users[1].address);
@@ -1188,14 +1193,14 @@ describe("ERC721", () => {
 
     it("13.1. Should be fail when buy a nonexistent token", async () => {
       await expect(erc721.buy(NONEXISTENT_TOKEN_ID)).to.be.revertedWith(
-        "ERC721Metadata: URI query for nonexistent token."
+        "Nonexistent token."
       );
     });
 
-    it("13.2. Should be fail when buy a owned token", async () => {
+    it("13.2. Should be fail when buy an owned token", async () => {
       const tokenId = await erc721.lastId();
       await expect(erc721.connect(users[0]).buy(tokenId)).to.be.revertedWith(
-        "Already owned this token"
+        "Already owned"
       );
     });
 
