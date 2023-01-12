@@ -1,8 +1,8 @@
 // SPDX-License-Identifier: MIT
-pragma solidity 0.8.17;
+pragma solidity 0.8.16;
 
 import "@openzeppelin/contracts-upgradeable/token/ERC721/ERC721Upgradeable.sol";
-import "@openzeppelin/contracts-upgradeable/token/ERC721/extensions/ERC721EnumerableUpgradeable.sol";
+// import "@openzeppelin/contracts-upgradeable/token/ERC721/extensions/ERC721EnumerableUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/token/common/ERC2981Upgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/utils/StringsUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/utils/CountersUpgradeable.sol";
@@ -75,13 +75,13 @@ contract ERC721 is
 	/**
 	 * @notice Mapping signature to token ID
 	 */
-	mapping(bytes => uint256) public tokenIdOf;
+	// mapping(bytes => uint256) public tokenIdOf;
 
 	/**
 	 * @notice Emit event when contract is deployed
 	 */
 	event Deployed(
-		address indexed owner,
+		address owner,
 		string tokenName,
 		string symbol,
 		uint256 expiration,
@@ -106,7 +106,10 @@ contract ERC721 is
 	/**
 	 * @notice Emit event when set status of a token
 	 */
-	event SetExpiration(uint256 indexed oldExpiration, uint256 newExpiration);
+	event SetExpiration(
+		uint256 indexed oldExpiration,
+		uint256 indexed newExpiration
+	);
 
 	/**
 	 * @notice Emit event when owner withdraws
@@ -129,17 +132,20 @@ contract ERC721 is
 	/**
 	 * @notice Emit event when someone buy token
 	 */
-	event Bought(address buyer, uint256 tokenId);
+	event Bought(address indexed buyer, uint256 indexed tokenId);
 
 	/**
 	 *  @notice Update new base URI
 	 *
 	 *  @dev    Only owner or controller can call this function
 	 *
-	 *          Name        Meaning
-	 *  @param  _owner      Contract owner address
-	 *  @param  _tokenName  Token name
-	 *  @param  _symbol     Token symbol
+	 *          Name        					Meaning
+	 *  @param  _owner      					Contract owner address
+	 *  @param  _tokenName  					Token name
+	 *  @param  _symbol     					Token symbol
+	 *  @param  _expiration     			Expired period of token
+	 *  @param  _royaltyReceiver     	Royalty receiver address
+	 *  @param  _royaltyPercentage   	Royalty percentage
 	 *
 	 *  Emit event {Deployed}
 	 */
@@ -190,8 +196,9 @@ contract ERC721 is
 		address _to,
 		TokenInfo memory _tokenInput,
 		bytes memory _signature
-	) private {
+	) private view {
 		require(_to != address(0) && !_to.isContract(), "Invalid address");
+		require(bytes(_tokenInput.tokenURI).length > 0, "Empty URI");
 		require(
 			_tokenInput.amount > 0 &&
 				_tokenInput.price > 0 &&
@@ -243,6 +250,7 @@ contract ERC721 is
 		bytes memory _signature
 	) external {
 		require(_exists(_tokenId), "Nonexistent token");
+		require(bytes(_tokenURI).length > 0, "Empty URI");
 		TokenInfo memory _tokenInput = TokenInfo(
 			_tokenId,
 			0,
@@ -264,6 +272,7 @@ contract ERC721 is
 	 *          Name        Meaning
 	 *  @param  _tokenId    Token ID that want to set
 	 *  @param  _status     New status of token that want to set (true is ACTIVE, false is DEACTIVE)
+	 *  @param  _signature  Signature of transaction
 	 *
 	 *  Emit event {SetTokenStatus}
 	 */
@@ -349,7 +358,7 @@ contract ERC721 is
 		_safeMint(_to, tokenId);
 		statusOf[tokenId] = true;
 		expirationOf[tokenId] = block.timestamp + expiration;
-		tokenIdOf[_signature] = tokenId;
+		// tokenIdOf[_signature] = tokenId;
 		_tokenInput.tokenId = tokenId;
 		tokens[tokenId] = _tokenInput;
 		_updateBalance(_msgSender(), address(this), _tokenInput);
@@ -386,7 +395,7 @@ contract ERC721 is
 		_safeMint(_to, tokenId);
 		statusOf[tokenId] = true;
 		expirationOf[tokenId] = block.timestamp + expiration;
-		tokenIdOf[_signature] = tokenId;
+		// tokenIdOf[_signature] = tokenId;
 		_tokenInput.tokenId = tokenId;
 		tokens[tokenId] = _tokenInput;
 		_royaltyReceiver == address(0)
@@ -500,26 +509,18 @@ contract ERC721 is
 			_tokenId,
 			token.price
 		);
-		if (token.paymentToken != address(0)) {
-			IERC20Upgradeable(token.paymentToken).safeTransferFrom(
-				_msgSender(),
-				ownerOf(_tokenId),
-				token.price - royaltyFraction
-			);
-			IERC20Upgradeable(token.paymentToken).safeTransferFrom(
-				_msgSender(),
-				royaltyReceiver,
-				royaltyFraction
-			);
-		} else {
-			require(
-				address(_msgSender()).balance >= token.price &&
-					msg.value >= token.price,
-				"Invalid amount"
-			);
-			payable(ownerOf(_tokenId)).sendValue(token.price - royaltyFraction);
-			payable(royaltyReceiver).sendValue(royaltyFraction);
-		}
+		_handleTransfer(
+			_msgSender(),
+			ownerOf(_tokenId),
+			token.paymentToken,
+			token.price - royaltyFraction
+		);
+		_handleTransfer(
+			_msgSender(),
+			royaltyReceiver,
+			token.paymentToken,
+			royaltyFraction
+		);
 		_safeTransfer(ownerOf(_tokenId), _msgSender(), _tokenId, "");
 		emit Bought(_msgSender(), _tokenId);
 	}

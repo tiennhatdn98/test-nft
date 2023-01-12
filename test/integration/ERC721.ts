@@ -1,21 +1,18 @@
 import { upgrades } from "hardhat";
 import { ethers } from "hardhat";
 import { expect } from "chai";
-import { BigNumber, Contract } from "ethers";
+import { Contract } from "ethers";
 import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
 import { TokenInfoStruct } from "../../typechain-types/contracts/ERC721";
+import { AddressZero, MaxUint256 } from "@ethersproject/constants";
 
-const { AddressZero, MaxUint256 } = require("@ethersproject/constants");
 const ZERO_ADDRESS = AddressZero;
 const MAX_UINT256 = MaxUint256;
 const TOKEN_NAME = "Token";
 const SYMBOL = "TKN";
 const DECIMALS = 6;
 const YEAR_TO_SECONDS = 31_556_926;
-const NONEXISTENT_TOKEN_ID = 9999;
 const ROYALTY_PERCENTAGE = 10;
-const sampleSignature =
-  "0xe061bcd7ddefb1dbef4bb6e16bc0fc8f5c1edebbd3a94c3e7bfafae9966fae5936458df7c8cc4bf664641978b79d915c95db6907057f2bfe9610a323a2dad7281c";
 const royaltyPercentage = ROYALTY_PERCENTAGE * 100;
 
 describe("ERC721 Integration", () => {
@@ -28,8 +25,6 @@ describe("ERC721 Integration", () => {
   let government: SignerWithAddress;
   let artist: SignerWithAddress;
   let users: SignerWithAddress[];
-  let expiration: BigNumber;
-  let tokenId: BigNumber;
   let tokenInput: TokenInfoStruct;
 
   const resetTokenInput = () => {
@@ -231,6 +226,7 @@ describe("ERC721 Integration", () => {
 
   it("1.3. A user buys a token with royalty => Someone buys this token => Money will be transfered properly", async () => {
     // Mint token with royalty
+    tokenInput.tokenURI = "ipfs://URI";
     tokenInput.paymentToken = cashTestToken.address;
     tokenInput.price = ethers.utils.parseUnits("1", DECIMALS);
     tokenInput.amount = ethers.utils.parseUnits("2", DECIMALS);
