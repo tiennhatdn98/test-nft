@@ -36,7 +36,7 @@ contract ERC721 is
 	/**
 	 * @notice Default royalty info
 	 */
-	RoyaltyInfo public defaultRoyaltyInfo;
+	uint96 public royaltyPercentage;
 
 	/**
 	 * @notice expiration uint256 is expired period of token
@@ -51,7 +51,7 @@ contract ERC721 is
 	/**
 	 * @notice Mapping token ID expiration timestamp to store expired timestamp of each token
 	 */
-	mapping(uint256 => uint256) public expirationOf;
+	mapping(uint256 => uint256) public expireOf;
 
 	/**
 	 * @notice Mapping token ID to boolean to store status of each token (active or deactive)
@@ -75,7 +75,7 @@ contract ERC721 is
 	/**
 	 * @notice Mapping signature to token ID
 	 */
-	// mapping(bytes => uint256) public tokenIdOf;
+	mapping(bytes => uint256) public tokenIdOf;
 
 	/**
 	 * @notice Emit event when contract is deployed
@@ -85,7 +85,6 @@ contract ERC721 is
 		string tokenName,
 		string symbol,
 		uint256 expiration,
-		address royaltyReceiver,
 		uint256 royaltyPercentage
 	);
 
@@ -144,7 +143,6 @@ contract ERC721 is
 	 *  @param  _tokenName  					Token name
 	 *  @param  _symbol     					Token symbol
 	 *  @param  _expiration     			Expired period of token
-	 *  @param  _royaltyReceiver     	Royalty receiver address
 	 *  @param  _royaltyPercentage   	Royalty percentage
 	 *
 	 *  Emit event {Deployed}
@@ -154,7 +152,6 @@ contract ERC721 is
 		string memory _tokenName,
 		string memory _symbol,
 		uint256 _expiration,
-		address _royaltyReceiver,
 		uint96 _royaltyPercentage
 	) public initializer {
 		ReentrancyGuardUpgradeable.__ReentrancyGuard_init();
@@ -163,21 +160,13 @@ contract ERC721 is
 		transferOwnership(_owner);
 
 		expiration = _expiration;
+		royaltyPercentage = _royaltyPercentage;
 
-		if (_royaltyReceiver != address(0)) {
-			require(_royaltyPercentage > 0, "Invalid royalty percentage");
-			defaultRoyaltyInfo = RoyaltyInfo(
-				_royaltyReceiver,
-				_royaltyPercentage
-			);
-			_setDefaultRoyalty(_royaltyReceiver, _royaltyPercentage);
-		}
 		emit Deployed(
 			_owner,
 			_tokenName,
 			_symbol,
 			_expiration,
-			_royaltyReceiver,
 			_royaltyPercentage
 		);
 	}
@@ -355,13 +344,34 @@ contract ERC721 is
 		_isValidTokenInput(_to, _tokenInput, _signature);
 		lastId.increment();
 		tokenId = lastId.current();
-		_safeMint(_to, tokenId);
 		statusOf[tokenId] = true;
-		expirationOf[tokenId] = block.timestamp + expiration;
-		// tokenIdOf[_signature] = tokenId;
+		expireOf[tokenId] = block.timestamp + expiration;
+		tokenIdOf[_signature] = tokenId;
 		_tokenInput.tokenId = tokenId;
 		tokens[tokenId] = _tokenInput;
-		_updateBalance(_msgSender(), address(this), _tokenInput);
+		ownerBalanceOf[_tokenInput.paymentToken][
+			_tokenInput.owner
+		] += _tokenInput.price;
+		if (_tokenInput.amount > _tokenInput.price) {
+			changeOf[_tokenInput.paymentToken] +=
+				_tokenInput.amount -
+				_tokenInput.price;
+		}
+		_safeMint(_to, tokenId);
+		if (_tokenInput.paymentToken == address(0)) {
+			payable(_tokenInput.owner).sendValue(_tokenInput.price);
+		} else {
+			IERC20Upgradeable(_tokenInput.paymentToken).safeTransferFrom(
+				_msgSender(),
+				_tokenInput.owner,
+				_tokenInput.price
+			);
+			IERC20Upgradeable(_tokenInput.paymentToken).safeTransferFrom(
+				_msgSender(),
+				address(this),
+				_tokenInput.amount - _tokenInput.price
+			);
+		}
 	}
 
 	/**
@@ -390,26 +400,49 @@ contract ERC721 is
 		address _royaltyReceiver
 	) external payable nonReentrant returns (uint256 tokenId) {
 		_isValidTokenInput(_to, _tokenInput, _signature);
+		require(
+			_royaltyReceiver != address(0) && !_royaltyReceiver.isContract(),
+			"Invalid royalty receiver"
+		);
 		lastId.increment();
 		tokenId = lastId.current();
-		_safeMint(_to, tokenId);
 		statusOf[tokenId] = true;
-		expirationOf[tokenId] = block.timestamp + expiration;
-		// tokenIdOf[_signature] = tokenId;
+		expireOf[tokenId] = block.timestamp + expiration;
+		tokenIdOf[_signature] = tokenId;
 		_tokenInput.tokenId = tokenId;
 		tokens[tokenId] = _tokenInput;
-		_royaltyReceiver == address(0)
-			? _setTokenRoyalty(
-				tokenId,
-				defaultRoyaltyInfo.receiver,
-				defaultRoyaltyInfo.royaltyFraction
-			)
-			: _setTokenRoyalty(
-				tokenId,
-				_royaltyReceiver,
-				defaultRoyaltyInfo.royaltyFraction
+		ownerBalanceOf[_tokenInput.paymentToken][
+			_tokenInput.owner
+		] += _tokenInput.price;
+		if (_tokenInput.amount > _tokenInput.price) {
+			changeOf[_tokenInput.paymentToken] +=
+				_tokenInput.amount -
+				_tokenInput.price;
+		}
+		_safeMint(_to, tokenId);
+		_setTokenRoyalty(tokenId, _royaltyReceiver, royaltyPercentage);
+		if (_tokenInput.paymentToken == address(0)) {
+			payable(_tokenInput.owner).sendValue(_tokenInput.price);
+		} else {
+			IERC20Upgradeable(_tokenInput.paymentToken).safeTransferFrom(
+				_msgSender(),
+				_tokenInput.owner,
+				_tokenInput.price
 			);
-		_updateBalance(_msgSender(), address(this), _tokenInput);
+			IERC20Upgradeable(_tokenInput.paymentToken).safeTransferFrom(
+				_msgSender(),
+				address(this),
+				_tokenInput.amount - _tokenInput.price
+			);
+		}
+
+		// _tokenInput.paymentToken == address(0)
+		// 	? payable(_tokenInput.owner).sendValue(_tokenInput.price)
+		// 	: IERC20Upgradeable(_tokenInput.paymentToken).safeTransferFrom(
+		// 		_msgSender(),
+		// 		_tokenInput.owner,
+		// 		_tokenInput.price
+		// 	);
 	}
 
 	/**
@@ -453,22 +486,22 @@ contract ERC721 is
 	 *
 	 *  Emit event {Claimed}
 	 */
-	function claim(
-		address _paymentToken,
-		address _to,
-		uint256 _amount
-	) external nonReentrant {
-		require(_to != address(0), "Invalid address");
-		require(
-			_amount > 0 && _amount <= ownerBalanceOf[_paymentToken][_to],
-			"Invalid amount"
-		);
-		ownerBalanceOf[_paymentToken][_to] -= _amount;
-		_paymentToken == address(0)
-			? payable(_to).sendValue(_amount)
-			: IERC20Upgradeable(_paymentToken).safeTransfer(_to, _amount);
-		emit Claimed(_paymentToken, _to, _amount);
-	}
+	// function claim(
+	// 	address _paymentToken,
+	// 	address _to,
+	// 	uint256 _amount
+	// ) external nonReentrant {
+	// 	require(_to != address(0), "Invalid address");
+	// 	require(
+	// 		_amount > 0 && _amount <= ownerBalanceOf[_paymentToken][_to],
+	// 		"Invalid amount"
+	// 	);
+	// 	ownerBalanceOf[_paymentToken][_to] -= _amount;
+	// 	_paymentToken == address(0)
+	// 		? payable(_to).sendValue(_amount)
+	// 		: IERC20Upgradeable(_paymentToken).safeTransfer(_to, _amount);
+	// 	emit Claimed(_paymentToken, _to, _amount);
+	// }
 
 	/**
 	 *  @notice Transfer token from an address to another address
@@ -485,7 +518,7 @@ contract ERC721 is
 		require(_msgSender() != _to, "Transfer to yourself");
 		require(_exists(_tokenId), "Nonexistent token.");
 		require(statusOf[_tokenId], "Token is deactive");
-		expirationOf[_tokenId] = block.timestamp + expiration;
+		expireOf[_tokenId] = block.timestamp + expiration;
 		safeTransferFrom(_msgSender(), _to, _tokenId);
 	}
 
@@ -509,18 +542,21 @@ contract ERC721 is
 			_tokenId,
 			token.price
 		);
+
 		_handleTransfer(
 			_msgSender(),
 			ownerOf(_tokenId),
 			token.paymentToken,
 			token.price - royaltyFraction
 		);
-		_handleTransfer(
-			_msgSender(),
-			royaltyReceiver,
-			token.paymentToken,
-			royaltyFraction
-		);
+		if (royaltyReceiver != address(0)) {
+			_handleTransfer(
+				_msgSender(),
+				royaltyReceiver,
+				token.paymentToken,
+				royaltyFraction
+			);
+		}
 		_safeTransfer(ownerOf(_tokenId), _msgSender(), _tokenId, "");
 		emit Bought(_msgSender(), _tokenId);
 	}
