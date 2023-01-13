@@ -1,10 +1,10 @@
-import { upgrades } from "hardhat";
-import { ethers } from "hardhat";
+import { upgrades, ethers } from "hardhat";
 import { expect } from "chai";
 import { Contract } from "ethers";
 import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
 import { TokenInfoStruct } from "../../typechain-types/contracts/ERC721";
 import { AddressZero, MaxUint256 } from "@ethersproject/constants";
+import * as helpers from "@nomicfoundation/hardhat-network-helpers";
 
 const ZERO_ADDRESS = AddressZero;
 const MAX_UINT256 = MaxUint256;
@@ -27,7 +27,7 @@ describe("ERC721 Integration", () => {
   let users: SignerWithAddress[];
   let tokenInput: TokenInfoStruct;
 
-  const resetTokenInput = () => {
+  const resetTokenInput = (): void => {
     tokenInput = {
       tokenId: 0,
       tokenURI: "",
@@ -61,6 +61,9 @@ describe("ERC721 Integration", () => {
     const CashTestToken = await ethers.getContractFactory("CashTestToken");
     [owner, admin, verifier, royaltyReceiver, government, artist, ...users] =
       await ethers.getSigners();
+    users.forEach(async (user) => {
+      await helpers.setBalance(user.address, 100n ** 18n);
+    });
 
     erc721 = await upgrades.deployProxy(ERC721, [
       owner.address,
@@ -89,6 +92,7 @@ describe("ERC721 Integration", () => {
     await cashTestToken
       .connect(royaltyReceiver)
       .approve(erc721.address, MAX_UINT256);
+
     resetTokenInput();
   });
 
@@ -101,9 +105,11 @@ describe("ERC721 Integration", () => {
     tokenInput.amount = amount;
     tokenInput.owner = government.address;
     const signature = await getSignature(tokenInput, verifier);
-    await erc721.mint(users[0].address, tokenInput, signature, {
-      value: amount,
-    });
+    await erc721
+      .connect(users[0])
+      .mint(users[0].address, tokenInput, signature, {
+        value: amount,
+      });
 
     // Transfer token
     let tokenId = await erc721.lastId();

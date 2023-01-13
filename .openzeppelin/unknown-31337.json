@@ -2,7 +2,7 @@
   "manifestVersion": "3.2",
   "admin": {
     "address": "0xe7f1725E7734CE288F8367e1Bb143E90bb3F0512",
-    "txHash": "0x1c76b25df7420b02f5c04aec0b3da6abaffb67c5cf481493e433d919a8a9dded"
+    "txHash": "0x48c9ed8b869898d3fec5727d979f8ac39bb9bcdcf6d0a05ddf9acbd35b283b56"
   },
   "proxies": [
     {
@@ -13,11 +13,6 @@
     {
       "address": "0xCf7Ed3AccA5a467e9e704C703E8D87F634fB0Fc9",
       "txHash": "0x5125a7741057915eff157992f56d4a1f47181e656b88b53d03eed8dc392a6b36",
-      "kind": "transparent"
-    },
-    {
-      "address": "0x68B1D87F95878fE05B998F19b66F4baba5De1aed",
-      "txHash": "0x2da3fcf0b911a5113178dff98e0730c18ebc1a6d3627eb42fe8a8385529a57a6",
       "kind": "transparent"
     },
     {
@@ -168,11 +163,6 @@
     {
       "address": "0x5eb3Bc0a489C5A8288765d2336659EbCA68FCd00",
       "txHash": "0x0b21e4012ddc2c8100fa335f9836c26ffd7ed2b159034b8b3fdeeaf2dddd5bc2",
-      "kind": "transparent"
-    },
-    {
-      "address": "0x610178dA211FEF7D417bC0e6FeD39F05609AD788",
-      "txHash": "0xabe6269d17191e767152e453235fe6573e8d95f154f2c04e98aea9989af8f19c",
       "kind": "transparent"
     },
     {
@@ -1251,6 +1241,31 @@
       "kind": "transparent"
     },
     {
+      "address": "0xB7f8BC63BbcaD18155201308C8f3540b07f84F5e",
+      "txHash": "0x1fff5d26a5b9331a5b58b728f17f289dcc98dd691ff15e2071a295f0294d43ea",
+      "kind": "transparent"
+    },
+    {
+      "address": "0x3Aa5ebB10DC797CAC828524e59A333d0A371443c",
+      "txHash": "0x5149e08dfec1b58f819db2a8c54c36f1bbb6467fb12eb01da164f9fdc7ffa7b2",
+      "kind": "transparent"
+    },
+    {
+      "address": "0x610178dA211FEF7D417bC0e6FeD39F05609AD788",
+      "txHash": "0xec33e1a22630e3ee36adc85b8f5a32592c35a36fb57d275da013df38fe89240a",
+      "kind": "transparent"
+    },
+    {
+      "address": "0x68B1D87F95878fE05B998F19b66F4baba5De1aed",
+      "txHash": "0xae7648ff6b68d9028c74aed5e697420e871c884b101010a58225c5b47111576a",
+      "kind": "transparent"
+    },
+    {
+      "address": "0x9fE46736679d2D9a65F0992F2272dE9f3c7fa6e0",
+      "txHash": "0xc777b635ecac0d69c162a6a7825420c6d9381a430f3f64e7fe11a4d43beae981",
+      "kind": "transparent"
+    },
+    {
       "address": "0x2279B7A0a67DB372996a5FaB50D91eAA73d2eBe6",
       "txHash": "0xbb445c3c4772a92a0ca07c632bb9b066878514c051cad60fb59aeccc9f63ae6b",
       "kind": "transparent"
@@ -1631,25 +1646,20 @@
       "kind": "transparent"
     },
     {
-      "address": "0x9fE46736679d2D9a65F0992F2272dE9f3c7fa6e0",
-      "txHash": "0xf0974f7523926ce6e9ecfab269567814aa838cd81bbb6846895c5a553213951c",
+      "address": "0xd9abC93F81394Bd161a1b24B03518e0a570bDEAd",
+      "txHash": "0x65238c660b99b96877155d26b4ac6dd404176c625d175b2c9af36ec1159ba22e",
       "kind": "transparent"
     },
     {
-      "address": "0xB7f8BC63BbcaD18155201308C8f3540b07f84F5e",
-      "txHash": "0x1fff5d26a5b9331a5b58b728f17f289dcc98dd691ff15e2071a295f0294d43ea",
-      "kind": "transparent"
-    },
-    {
-      "address": "0x3Aa5ebB10DC797CAC828524e59A333d0A371443c",
-      "txHash": "0x5149e08dfec1b58f819db2a8c54c36f1bbb6467fb12eb01da164f9fdc7ffa7b2",
+      "address": "0x96E303b6D807c0824E83f954784e2d6f3614f167",
+      "txHash": "0xc79bb362da4ef58ab71a956987b9ddf235d890e7115f0d6f27811f18912d3d2e",
       "kind": "transparent"
     }
   ],
   "impls": {
-    "1c4c395306794f2972d0c0e788b2f03b34d48e84c2dcd5ccae06e7e897b31053": {
+    "afb3e6c5e2fd7d873cbfdbcecd5f8437de75a37310e7ff682493e916b6b88780": {
       "address": "0x5FbDB2315678afecb367f032d93F642f64180aa3",
-      "txHash": "0xdbc589ad795d95ae48fa0ff4cb84e2816d2d071c6b9bc49454770d4a6330ee44",
+      "txHash": "0xb919daecb5cd59213bcb739cfadf0c0f07c4705b53aa7607e040bcdcaee8ef68",
       "layout": {
         "solcVersion": "0.8.16",
         "storage": [
@@ -1788,7 +1798,7 @@
             "slot": "251",
             "type": "t_address",
             "contract": "Authorizable",
-            "src": "contracts/Authorizable.sol:14"
+            "src": "contracts/Authorizable.sol:30"
           },
           {
             "label": "verifier",
@@ -1796,7 +1806,7 @@
             "slot": "252",
             "type": "t_address",
             "contract": "Authorizable",
-            "src": "contracts/Authorizable.sol:19"
+            "src": "contracts/Authorizable.sol:35"
           },
           {
             "label": "_status",
@@ -1820,7 +1830,7 @@
             "slot": "303",
             "type": "t_struct(Counter)2468_storage",
             "contract": "ERC721",
-            "src": "contracts/ERC721.sol:34"
+            "src": "contracts/ERC721.sol:74"
           },
           {
             "label": "defaultRoyaltyInfo",
@@ -1828,7 +1838,7 @@
             "slot": "304",
             "type": "t_struct(RoyaltyInfo)1947_storage",
             "contract": "ERC721",
-            "src": "contracts/ERC721.sol:39"
+            "src": "contracts/ERC721.sol:79"
           },
           {
             "label": "expiration",
@@ -1836,15 +1846,15 @@
             "slot": "305",
             "type": "t_uint256",
             "contract": "ERC721",
-            "src": "contracts/ERC721.sol:44"
+            "src": "contracts/ERC721.sol:84"
           },
           {
             "label": "tokens",
             "offset": 0,
             "slot": "306",
-            "type": "t_mapping(t_uint256,t_struct(TokenInfo)5863_storage)",
+            "type": "t_mapping(t_uint256,t_struct(TokenInfo)7502_storage)",
             "contract": "ERC721",
-            "src": "contracts/ERC721.sol:49"
+            "src": "contracts/ERC721.sol:89"
           },
           {
             "label": "expirationOf",
@@ -1852,7 +1862,7 @@
             "slot": "307",
             "type": "t_mapping(t_uint256,t_uint256)",
             "contract": "ERC721",
-            "src": "contracts/ERC721.sol:54"
+            "src": "contracts/ERC721.sol:94"
           },
           {
             "label": "statusOf",
@@ -1860,7 +1870,7 @@
             "slot": "308",
             "type": "t_mapping(t_uint256,t_bool)",
             "contract": "ERC721",
-            "src": "contracts/ERC721.sol:59"
+            "src": "contracts/ERC721.sol:99"
           },
           {
             "label": "ownerBalanceOf",
@@ -1868,7 +1878,7 @@
             "slot": "309",
             "type": "t_mapping(t_address,t_mapping(t_address,t_uint256))",
             "contract": "ERC721",
-            "src": "contracts/ERC721.sol:64"
+            "src": "contracts/ERC721.sol:104"
           },
           {
             "label": "changeOf",
@@ -1876,7 +1886,7 @@
             "slot": "310",
             "type": "t_mapping(t_address,t_uint256)",
             "contract": "ERC721",
-            "src": "contracts/ERC721.sol:69"
+            "src": "contracts/ERC721.sol:109"
           }
         ],
         "types": {
@@ -1932,7 +1942,7 @@
             "label": "mapping(uint256 => struct ERC2981Upgradeable.RoyaltyInfo)",
             "numberOfBytes": "32"
           },
-          "t_mapping(t_uint256,t_struct(TokenInfo)5863_storage)": {
+          "t_mapping(t_uint256,t_struct(TokenInfo)7502_storage)": {
             "label": "mapping(uint256 => struct TokenInfo)",
             "numberOfBytes": "32"
           },
@@ -1974,7 +1984,7 @@
             ],
             "numberOfBytes": "32"
           },
-          "t_struct(TokenInfo)5863_storage": {
+          "t_struct(TokenInfo)7502_storage": {
             "label": "struct TokenInfo",
             "members": [
               {

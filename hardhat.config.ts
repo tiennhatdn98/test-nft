@@ -30,7 +30,9 @@ const config: HardhatUserConfig = {
   },
   defaultNetwork: "hardhat",
   networks: {
-    hardhat: { accounts: { count: 100 } },
+    hardhat: {
+      accounts: { count: 100, accountsBalance: "1000000000000000000000000" },
+    },
     // Mainnet
     ethereum: {
       url: process.env.ETHEREUM_RPC,

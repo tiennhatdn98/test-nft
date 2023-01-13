@@ -7,7 +7,8 @@
     "deploy-binance-testnet": "npx hardhat run scripts/deploy.ts --network binance_testnet",
     "deploy-binance-mainnet": "npx hardhat run scripts/deploy.ts --network binance",
     "size-contracts": "npx hardhat size-contracts",
-    "solhint": "npx solhint --formatter table 'contracts/**/*.sol'"
+    "solhint": "npx solhint --formatter table 'contracts/**/*.sol'",
+    "slither": "slither . --solc-remaps '@openzeppelin=node_modules/@openzeppelin/ @chainlink=node_modules/@chainlink/' --exclude naming-convention,external-function,low-level-calls"
   },
   "devDependencies": {
     "@ethersproject/abi": "^5.7.0",
