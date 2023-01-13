@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-pragma solidity 0.8.17;
+pragma solidity 0.8.16;
 
 import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 
@@ -27,13 +27,13 @@ contract CashTestToken is ERC20 {
 	}
 
 	/// @dev generate tokens and distributes to list of testing account
-	function mintForList(address[] memory _accs, uint256 _amount) external {
-		require(_accs.length > 0, "Invalid minted accounts");
-		require(_amount > 0, "Invalid minted amount");
+	// function mintForList(address[] memory _accs, uint256 _amount) external {
+	// 	require(_accs.length > 0, "Invalid minted accounts");
+	// 	require(_amount > 0, "Invalid minted amount");
 
-		uint256 mintedAmount = _amount;
-		for (uint256 i = 0; i < _accs.length; i++) {
-			_mint(_accs[i], mintedAmount);
-		}
-	}
+	// 	uint256 mintedAmount = _amount;
+	// 	for (uint256 i = 0; i < _accs.length; i++) {
+	// 		_mint(_accs[i], mintedAmount);
+	// 	}
+	// }
 }

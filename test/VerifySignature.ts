@@ -2,9 +2,9 @@ import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
 import { expect } from "chai";
 import { Contract } from "ethers";
 import { ethers } from "hardhat";
-import { TokenInputStruct } from "../typechain-types/contracts/ERC721";
+import { TokenInfoStruct } from "../typechain-types/contracts/ERC721";
 
-const { AddressZero, MaxUint256 } = require("@ethersproject/constants");
+const { AddressZero } = require("@ethersproject/constants");
 const ZERO_ADDRESS = AddressZero;
 
 describe("VerifySignature", () => {
@@ -20,7 +20,7 @@ describe("VerifySignature", () => {
   it("Check signature", async () => {
     [signer] = await ethers.getSigners();
 
-    let tokenInput1: TokenInputStruct = {
+    let tokenInput1: TokenInfoStruct = {
       tokenId: 0,
       tokenURI: "ipfs://1.json",
       status: true,
@@ -30,7 +30,7 @@ describe("VerifySignature", () => {
       owner: ZERO_ADDRESS,
     };
 
-    let tokenInput2: TokenInputStruct = {
+    let tokenInput2: TokenInfoStruct = {
       tokenId: 0,
       tokenURI: "ipfs://2.json",
       status: true,
@@ -50,13 +50,6 @@ describe("VerifySignature", () => {
       tokenInput1.status
     );
     const sig = await signer.signMessage(ethers.utils.arrayify(hash));
-    const ethHash = await verifySignature.getEthSignedMessageHash(hash);
-
-    console.log("Signer:         ", signer.address);
-    console.log(
-      "Recover signer: ",
-      await verifySignature.recoverSigner(ethHash, sig)
-    );
 
     // Check correct hash
     expect(
