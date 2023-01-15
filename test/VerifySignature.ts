@@ -2,25 +2,52 @@ import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
 import { expect } from "chai";
 import { Contract } from "ethers";
 import { ethers } from "hardhat";
-import { TokenInfoStruct } from "../typechain-types/contracts/ERC721";
+import { TokenDetailStruct } from "../typechain-types/contracts/ERC721";
+import { AddressZero } from "@ethersproject/constants";
 
-const { AddressZero } = require("@ethersproject/constants");
 const ZERO_ADDRESS = AddressZero;
 
-describe("VerifySignature", () => {
+describe("Verify Signature", () => {
   let verifySignature: Contract;
   let signer: SignerWithAddress;
+  let stranger: SignerWithAddress;
 
   beforeEach(async () => {
+    [signer, stranger] = await ethers.getSigners();
+
     const VerifySignature = await ethers.getContractFactory("VerifySignature");
     verifySignature = await VerifySignature.deploy();
     await verifySignature.deployed();
   });
 
-  it("Check signature", async () => {
-    [signer] = await ethers.getSigners();
+  it("1. Should verify fail when signer is wrong", async () => {
+    const data: TokenDetailStruct = {
+      tokenId: 0,
+      tokenURI: "ipfs://1.json",
+      status: true,
+      paymentToken: ZERO_ADDRESS,
+      amount: ethers.utils.parseEther("1"),
+      price: ethers.utils.parseEther("1"),
+      owner: ZERO_ADDRESS,
+    };
+    const hash = await verifySignature.getMessageHash(
+      data.tokenId,
+      data.tokenURI,
+      data.paymentToken,
+      data.price,
+      data.amount,
+      data.owner,
+      data.status
+    );
+    const signature = await stranger.signMessage(ethers.utils.arrayify(hash));
 
-    let tokenInput1: TokenInfoStruct = {
+    expect(
+      await verifySignature.verify(signer.address, data, signature)
+    ).to.be.equal(false);
+  });
+
+  it("2. Should verify fail when data is wrong", async () => {
+    const wrongData: TokenDetailStruct = {
       tokenId: 0,
       tokenURI: "ipfs://1.json",
       status: true,
@@ -30,9 +57,9 @@ describe("VerifySignature", () => {
       owner: ZERO_ADDRESS,
     };
 
-    let tokenInput2: TokenInfoStruct = {
+    const correctData: TokenDetailStruct = {
       tokenId: 0,
-      tokenURI: "ipfs://2.json",
+      tokenURI: "ipfs://abcxyz.json",
       status: true,
       paymentToken: ZERO_ADDRESS,
       amount: ethers.utils.parseEther("1"),
@@ -41,24 +68,45 @@ describe("VerifySignature", () => {
     };
 
     const hash = await verifySignature.getMessageHash(
-      tokenInput1.tokenId,
-      tokenInput1.tokenURI,
-      tokenInput1.paymentToken,
-      tokenInput1.price,
-      tokenInput1.amount,
-      tokenInput1.owner,
-      tokenInput1.status
+      wrongData.tokenId,
+      wrongData.tokenURI,
+      wrongData.paymentToken,
+      wrongData.price,
+      wrongData.amount,
+      wrongData.owner,
+      wrongData.status
     );
-    const sig = await signer.signMessage(ethers.utils.arrayify(hash));
+    const signature = await signer.signMessage(ethers.utils.arrayify(hash));
 
-    // Check correct hash
     expect(
-      await verifySignature.verify(signer.address, tokenInput1, sig)
-    ).to.be.equal(true);
-
-    // Check wrong hash
-    expect(
-      await verifySignature.verify(signer.address, tokenInput2, sig)
+      await verifySignature.verify(signer.address, correctData, signature)
     ).to.be.equal(false);
+  });
+
+  it("3. Should verify successfully", async () => {
+    const data: TokenDetailStruct = {
+      tokenId: 0,
+      tokenURI: "ipfs://1.json",
+      status: true,
+      paymentToken: ZERO_ADDRESS,
+      amount: ethers.utils.parseEther("1"),
+      price: ethers.utils.parseEther("1"),
+      owner: ZERO_ADDRESS,
+    };
+
+    const hash = await verifySignature.getMessageHash(
+      data.tokenId,
+      data.tokenURI,
+      data.paymentToken,
+      data.price,
+      data.amount,
+      data.owner,
+      data.status
+    );
+    const signature = await signer.signMessage(ethers.utils.arrayify(hash));
+
+    expect(
+      await verifySignature.verify(signer.address, data, signature)
+    ).to.be.equal(true);
   });
 });

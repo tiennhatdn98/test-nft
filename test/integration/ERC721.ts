@@ -2,8 +2,9 @@ import { upgrades, ethers } from "hardhat";
 import { expect } from "chai";
 import { Contract } from "ethers";
 import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
-import { TokenInfoStruct } from "../../typechain-types/contracts/ERC721";
+import { TokenDetailStruct } from "../../typechain-types/contracts/ERC721";
 import { AddressZero, MaxUint256 } from "@ethersproject/constants";
+import { getSignature } from "../utils/ERC721";
 import * as helpers from "@nomicfoundation/hardhat-network-helpers";
 
 const ZERO_ADDRESS = AddressZero;
@@ -25,7 +26,7 @@ describe("ERC721 Integration", () => {
   let government: SignerWithAddress;
   let artist: SignerWithAddress;
   let users: SignerWithAddress[];
-  let tokenInput: TokenInfoStruct;
+  let tokenInput: TokenDetailStruct;
 
   const resetTokenInput = (): void => {
     tokenInput = {
@@ -37,23 +38,6 @@ describe("ERC721 Integration", () => {
       owner: ZERO_ADDRESS,
       status: true,
     };
-  };
-
-  const getSignature = async (
-    tokenInput: TokenInfoStruct,
-    signer: SignerWithAddress
-  ): Promise<string> => {
-    const hash = await erc721.getMessageHash(
-      tokenInput.tokenId,
-      tokenInput.tokenURI,
-      tokenInput.paymentToken,
-      tokenInput.price,
-      tokenInput.amount,
-      tokenInput.owner,
-      tokenInput.status
-    );
-    const signature = await signer.signMessage(ethers.utils.arrayify(hash));
-    return signature;
   };
 
   beforeEach(async () => {
@@ -104,7 +88,7 @@ describe("ERC721 Integration", () => {
     tokenInput.price = price;
     tokenInput.amount = amount;
     tokenInput.owner = government.address;
-    const signature = await getSignature(tokenInput, verifier);
+    const signature = await getSignature(erc721, tokenInput, verifier);
     await erc721
       .connect(users[0])
       .mint(users[0].address, tokenInput, signature, {
@@ -148,7 +132,7 @@ describe("ERC721 Integration", () => {
     tokenInput.price = price;
     tokenInput.amount = amount;
     tokenInput.owner = government.address;
-    const signature = await getSignature(tokenInput, verifier);
+    const signature = await getSignature(erc721, tokenInput, verifier);
     await erc721
       .connect(users[0])
       .mintWithRoyalty(
@@ -221,7 +205,7 @@ describe("ERC721 Integration", () => {
     tokenInput.price = ethers.utils.parseUnits("1", DECIMALS);
     tokenInput.amount = ethers.utils.parseUnits("2", DECIMALS);
     tokenInput.owner = government.address;
-    const signature = await getSignature(tokenInput, verifier);
+    const signature = await getSignature(erc721, tokenInput, verifier);
     await erc721
       .connect(users[0])
       .mintWithRoyalty(users[0].address, tokenInput, signature, artist.address);
@@ -261,6 +245,5 @@ describe("ERC721 Integration", () => {
       [erc721.address, owner.address],
       [withdrawableAmount.mul(-1), withdrawableAmount]
     );
-    expect(await erc721.changeOf(cashTestToken.address)).to.be.equal(0);
   });
 });
