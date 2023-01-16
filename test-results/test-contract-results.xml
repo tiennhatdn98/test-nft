@@ -1,189 +1,193 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<testsuites name="Mocha Tests" time="29.691" tests="75" failures="0">
-  <testsuite name="Root Suite" timestamp="2023-01-15T04:37:01" tests="0" time="0.000" failures="0">
+<testsuites name="Mocha Tests" time="27.039" tests="77" failures="0">
+  <testsuite name="Root Suite" timestamp="2023-01-16T07:10:56" tests="0" time="0.000" failures="0">
   </testsuite>
-  <testsuite name="ERC721" timestamp="2023-01-15T04:37:01" tests="0" file="/home/nhat-truong/Projects/test-nft/test/ERC721.ts" time="0.000" failures="0">
+  <testsuite name="ERC721" timestamp="2023-01-16T07:10:56" tests="0" file="/home/nhat-truong/Projects/test-nft/test/ERC721.ts" time="0.000" failures="0">
   </testsuite>
-  <testsuite name="1. Initialize" timestamp="2023-01-15T04:37:01" tests="1" file="/home/nhat-truong/Projects/test-nft/test/ERC721.ts" time="1.222" failures="0">
-    <testcase name="ERC721 1. Initialize 1.1. Should assign states successfully" time="0.049" classname="1.1. Should assign states successfully">
-    </testcase>
-  </testsuite>
-  <testsuite name="2. Mint" timestamp="2023-01-15T04:37:03" tests="13" file="/home/nhat-truong/Projects/test-nft/test/ERC721.ts" time="4.888" failures="0">
-    <testcase name="ERC721 2. Mint 2.1. Should be fail when recipient address is zero address" time="0.020" classname="2.1. Should be fail when recipient address is zero address">
-    </testcase>
-    <testcase name="ERC721 2. Mint 2.2. Should be fail when recipient address is a contract address" time="0.012" classname="2.2. Should be fail when recipient address is a contract address">
-    </testcase>
-    <testcase name="ERC721 2. Mint 2.3. Should be fail when token URI is empty" time="0.022" classname="2.3. Should be fail when token URI is empty">
-    </testcase>
-    <testcase name="ERC721 2. Mint 2.4. Should be fail when amount is equal 0" time="0.010" classname="2.4. Should be fail when amount is equal 0">
-    </testcase>
-    <testcase name="ERC721 2. Mint 2.5. Should be fail when price is equal 0" time="0.009" classname="2.5. Should be fail when price is equal 0">
-    </testcase>
-    <testcase name="ERC721 2. Mint 2.6. Should be fail when amount is less than price" time="0.010" classname="2.6. Should be fail when amount is less than price">
-    </testcase>
-    <testcase name="ERC721 2. Mint 2.7. Should be fail when user pay native token and msg.value is not equal amount" time="0.084" classname="2.7. Should be fail when user pay native token and msg.value is not equal amount">
-    </testcase>
-    <testcase name="ERC721 2. Mint 2.8. Should be fail when user pays cash test token and payment token is not a contract address" time="0.010" classname="2.8. Should be fail when user pays cash test token and payment token is not a contract address">
-    </testcase>
-    <testcase name="ERC721 2. Mint 2.9. Should be fail when local government address is zero address" time="0.009" classname="2.9. Should be fail when local government address is zero address">
-    </testcase>
-    <testcase name="ERC721 2. Mint 2.10. Should be fail when local government address is a contract address" time="0.016" classname="2.10. Should be fail when local government address is a contract address">
-    </testcase>
-    <testcase name="ERC721 2. Mint 2.11. Should be fail when transaction is not signed by verifier" time="0.020" classname="2.11. Should be fail when transaction is not signed by verifier">
-    </testcase>
-    <testcase name="ERC721 2. Mint 2.12. Should mint successfully when user pays native token" time="0.113" classname="2.12. Should mint successfully when user pays native token">
-    </testcase>
-    <testcase name="ERC721 2. Mint 2.13. Should mint successfully when user pays cash test token" time="0.131" classname="2.13. Should mint successfully when user pays cash test token">
+  <testsuite name="1. Initialize" timestamp="2023-01-16T07:10:56" tests="1" file="/home/nhat-truong/Projects/test-nft/test/ERC721.ts" time="1.183" failures="0">
+    <testcase name="ERC721 1. Initialize 1.1. Should assign states successfully" time="0.052" classname="1.1. Should assign states successfully">
     </testcase>
   </testsuite>
-  <testsuite name="3. Mint With Royalty" timestamp="2023-01-15T04:37:07" tests="13" file="/home/nhat-truong/Projects/test-nft/test/ERC721.ts" time="4.208" failures="0">
-    <testcase name="ERC721 3. Mint With Royalty 3.1. Should be fail when recipient address is zero address" time="0.009" classname="3.1. Should be fail when recipient address is zero address">
+  <testsuite name="2. Mint" timestamp="2023-01-16T07:10:57" tests="13" file="/home/nhat-truong/Projects/test-nft/test/ERC721.ts" time="4.561" failures="0">
+    <testcase name="ERC721 2. Mint 2.1. Should be fail when recipient address is zero address" time="0.039" classname="2.1. Should be fail when recipient address is zero address">
     </testcase>
-    <testcase name="ERC721 3. Mint With Royalty 3.2. Should be fail when recipient address is a contract address" time="0.011" classname="3.2. Should be fail when recipient address is a contract address">
+    <testcase name="ERC721 2. Mint 2.2. Should be fail when recipient address is a contract address" time="0.023" classname="2.2. Should be fail when recipient address is a contract address">
     </testcase>
-    <testcase name="ERC721 3. Mint With Royalty 3.3. Should be fail when token URI is empty" time="0.009" classname="3.3. Should be fail when token URI is empty">
+    <testcase name="ERC721 2. Mint 2.3. Should be fail when token URI is empty" time="0.016" classname="2.3. Should be fail when token URI is empty">
     </testcase>
-    <testcase name="ERC721 3. Mint With Royalty 3.4. Should be fail when amount is equal 0" time="0.013" classname="3.4. Should be fail when amount is equal 0">
+    <testcase name="ERC721 2. Mint 2.4. Should be fail when amount is equal 0" time="0.013" classname="2.4. Should be fail when amount is equal 0">
     </testcase>
-    <testcase name="ERC721 3. Mint With Royalty 3.5. Should be fail when price is equal 0" time="0.017" classname="3.5. Should be fail when price is equal 0">
+    <testcase name="ERC721 2. Mint 2.5. Should be fail when price is equal 0" time="0.013" classname="2.5. Should be fail when price is equal 0">
     </testcase>
-    <testcase name="ERC721 3. Mint With Royalty 3.6. Should be fail when amount is less than price" time="0.011" classname="3.6. Should be fail when amount is less than price">
+    <testcase name="ERC721 2. Mint 2.6. Should be fail when amount is less than price" time="0.013" classname="2.6. Should be fail when amount is less than price">
     </testcase>
-    <testcase name="ERC721 3. Mint With Royalty 3.7. Should be fail when user pay native token and msg.value is not equal amount" time="0.020" classname="3.7. Should be fail when user pay native token and msg.value is not equal amount">
+    <testcase name="ERC721 2. Mint 2.7. Should be fail when user pays native token and msg.value is not equal amount" time="0.049" classname="2.7. Should be fail when user pays native token and msg.value is not equal amount">
     </testcase>
-    <testcase name="ERC721 3. Mint With Royalty 3.8. Should be fail when user pay native token and msg.value is not equal amount" time="0.009" classname="3.8. Should be fail when user pay native token and msg.value is not equal amount">
+    <testcase name="ERC721 2. Mint 2.8. Should be fail when user pays cash test token and payment token is not a contract address" time="0.014" classname="2.8. Should be fail when user pays cash test token and payment token is not a contract address">
     </testcase>
-    <testcase name="ERC721 3. Mint With Royalty 3.9. Should be fail when local government address is zero address" time="0.083" classname="3.9. Should be fail when local government address is zero address">
+    <testcase name="ERC721 2. Mint 2.9. Should be fail when local government address is zero address" time="0.013" classname="2.9. Should be fail when local government address is zero address">
     </testcase>
-    <testcase name="ERC721 3. Mint With Royalty 3.10. Should be fail when local government address is a contract address" time="0.009" classname="3.10. Should be fail when local government address is a contract address">
+    <testcase name="ERC721 2. Mint 2.10. Should be fail when local government address is a contract address" time="0.014" classname="2.10. Should be fail when local government address is a contract address">
     </testcase>
-    <testcase name="ERC721 3. Mint With Royalty 3.11. Should be fail when transaction is not signed by verifier" time="0.027" classname="3.11. Should be fail when transaction is not signed by verifier">
+    <testcase name="ERC721 2. Mint 2.11. Should be fail when transaction is not signed by verifier" time="0.047" classname="2.11. Should be fail when transaction is not signed by verifier">
     </testcase>
-    <testcase name="ERC721 3. Mint With Royalty 3.12. Should mint successfully when user pay native token" time="0.078" classname="3.12. Should mint successfully when user pay native token">
+    <testcase name="ERC721 2. Mint 2.12. Should mint successfully when user pays native token" time="0.101" classname="2.12. Should mint successfully when user pays native token">
     </testcase>
-    <testcase name="ERC721 3. Mint With Royalty 3.13. Should mint successfully when user pay cash test token" time="0.100" classname="3.13. Should mint successfully when user pay cash test token">
-    </testcase>
-  </testsuite>
-  <testsuite name="4. Set Admin" timestamp="2023-01-15T04:37:12" tests="4" file="/home/nhat-truong/Projects/test-nft/test/ERC721.ts" time="1.197" failures="0">
-    <testcase name="ERC721 4. Set Admin 4.1. Should be fail when caller is not the owner" time="0.025" classname="4.1. Should be fail when caller is not the owner">
-    </testcase>
-    <testcase name="ERC721 4. Set Admin 4.2. Should be fail when setting zero address" time="0.011" classname="4.2. Should be fail when setting zero address">
-    </testcase>
-    <testcase name="ERC721 4. Set Admin 4.3. Should be fail when setting contract address" time="0.022" classname="4.3. Should be fail when setting contract address">
-    </testcase>
-    <testcase name="ERC721 4. Set Admin 4.4. Should set successfully" time="0.014" classname="4.4. Should set successfully">
+    <testcase name="ERC721 2. Mint 2.13. Should mint successfully when user pays cash test token" time="0.169" classname="2.13. Should mint successfully when user pays cash test token">
     </testcase>
   </testsuite>
-  <testsuite name="5. Set Verifier" timestamp="2023-01-15T04:37:13" tests="4" file="/home/nhat-truong/Projects/test-nft/test/ERC721.ts" time="1.177" failures="0">
-    <testcase name="ERC721 5. Set Verifier 5.1. Should be fail when caller is not the owner" time="0.078" classname="5.1. Should be fail when caller is not the owner">
+  <testsuite name="3. Mint With Royalty" timestamp="2023-01-16T07:11:02" tests="13" file="/home/nhat-truong/Projects/test-nft/test/ERC721.ts" time="4.007" failures="0">
+    <testcase name="ERC721 3. Mint With Royalty 3.1. Should be fail when recipient address is zero address" time="0.012" classname="3.1. Should be fail when recipient address is zero address">
+    </testcase>
+    <testcase name="ERC721 3. Mint With Royalty 3.2. Should be fail when recipient address is a contract address" time="0.012" classname="3.2. Should be fail when recipient address is a contract address">
+    </testcase>
+    <testcase name="ERC721 3. Mint With Royalty 3.3. Should be fail when token URI is empty" time="0.017" classname="3.3. Should be fail when token URI is empty">
+    </testcase>
+    <testcase name="ERC721 3. Mint With Royalty 3.4. Should be fail when amount is equal 0" time="0.020" classname="3.4. Should be fail when amount is equal 0">
+    </testcase>
+    <testcase name="ERC721 3. Mint With Royalty 3.5. Should be fail when price is equal 0" time="0.022" classname="3.5. Should be fail when price is equal 0">
+    </testcase>
+    <testcase name="ERC721 3. Mint With Royalty 3.6. Should be fail when amount is less than price" time="0.016" classname="3.6. Should be fail when amount is less than price">
+    </testcase>
+    <testcase name="ERC721 3. Mint With Royalty 3.7. Should be fail when user pays native token and msg.value is not equal amount" time="0.019" classname="3.7. Should be fail when user pays native token and msg.value is not equal amount">
+    </testcase>
+    <testcase name="ERC721 3. Mint With Royalty 3.8. Should be fail when user pays native token and msg.value is not equal amount" time="0.015" classname="3.8. Should be fail when user pays native token and msg.value is not equal amount">
+    </testcase>
+    <testcase name="ERC721 3. Mint With Royalty 3.9. Should be fail when local government address is zero address" time="0.012" classname="3.9. Should be fail when local government address is zero address">
+    </testcase>
+    <testcase name="ERC721 3. Mint With Royalty 3.10. Should be fail when local government address is a contract address" time="0.012" classname="3.10. Should be fail when local government address is a contract address">
+    </testcase>
+    <testcase name="ERC721 3. Mint With Royalty 3.11. Should be fail when transaction is not signed by verifier" time="0.028" classname="3.11. Should be fail when transaction is not signed by verifier">
+    </testcase>
+    <testcase name="ERC721 3. Mint With Royalty 3.12. Should mint successfully when user pays native token" time="0.096" classname="3.12. Should mint successfully when user pays native token">
+    </testcase>
+    <testcase name="ERC721 3. Mint With Royalty 3.13. Should mint successfully when user pay cash test token" time="0.145" classname="3.13. Should mint successfully when user pay cash test token">
+    </testcase>
+  </testsuite>
+  <testsuite name="4. Set Admin" timestamp="2023-01-16T07:11:06" tests="4" file="/home/nhat-truong/Projects/test-nft/test/ERC721.ts" time="1.177" failures="0">
+    <testcase name="ERC721 4. Set Admin 4.1. Should be fail when caller is not the owner" time="0.019" classname="4.1. Should be fail when caller is not the owner">
+    </testcase>
+    <testcase name="ERC721 4. Set Admin 4.2. Should be fail when setting zero address" time="0.009" classname="4.2. Should be fail when setting zero address">
+    </testcase>
+    <testcase name="ERC721 4. Set Admin 4.3. Should be fail when setting contract address" time="0.019" classname="4.3. Should be fail when setting contract address">
+    </testcase>
+    <testcase name="ERC721 4. Set Admin 4.4. Should set successfully" time="0.018" classname="4.4. Should set successfully">
+    </testcase>
+  </testsuite>
+  <testsuite name="5. Set Verifier" timestamp="2023-01-16T07:11:07" tests="4" file="/home/nhat-truong/Projects/test-nft/test/ERC721.ts" time="1.130" failures="0">
+    <testcase name="ERC721 5. Set Verifier 5.1. Should be fail when caller is not the owner" time="0.009" classname="5.1. Should be fail when caller is not the owner">
     </testcase>
     <testcase name="ERC721 5. Set Verifier 5.2. Should be fail when setting zero address" time="0.010" classname="5.2. Should be fail when setting zero address">
     </testcase>
-    <testcase name="ERC721 5. Set Verifier 5.3. Should be fail when setting a contract address" time="0.009" classname="5.3. Should be fail when setting a contract address">
+    <testcase name="ERC721 5. Set Verifier 5.3. Should be fail when setting a contract address" time="0.010" classname="5.3. Should be fail when setting a contract address">
     </testcase>
-    <testcase name="ERC721 5. Set Verifier 5.4. Should set successfully" time="0.017" classname="5.4. Should set successfully">
+    <testcase name="ERC721 5. Set Verifier 5.4. Should set successfully" time="0.026" classname="5.4. Should set successfully">
     </testcase>
   </testsuite>
-  <testsuite name="6. Set Expiration" timestamp="2023-01-15T04:37:14" tests="3" file="/home/nhat-truong/Projects/test-nft/test/ERC721.ts" time="0.755" failures="0">
-    <testcase name="ERC721 6. Set Expiration 6.1. Should be fail when caller is not the admin" time="0.009" classname="6.1. Should be fail when caller is not the admin">
+  <testsuite name="6. Set Expiration" timestamp="2023-01-16T07:11:08" tests="3" file="/home/nhat-truong/Projects/test-nft/test/ERC721.ts" time="0.808" failures="0">
+    <testcase name="ERC721 6. Set Expiration 6.1. Should be fail when caller is not the admin" time="0.016" classname="6.1. Should be fail when caller is not the admin">
     </testcase>
     <testcase name="ERC721 6. Set Expiration 6.2. Should be fail when setting 0" time="0.011" classname="6.2. Should be fail when setting 0">
     </testcase>
-    <testcase name="ERC721 6. Set Expiration 6.3. Should set successfully" time="0.023" classname="6.3. Should set successfully">
+    <testcase name="ERC721 6. Set Expiration 6.3. Should set successfully" time="0.015" classname="6.3. Should set successfully">
     </testcase>
   </testsuite>
-  <testsuite name="7. Set Token URI" timestamp="2023-01-15T04:37:15" tests="5" file="/home/nhat-truong/Projects/test-nft/test/ERC721.ts" time="1.540" failures="0">
-    <testcase name="ERC721 7. Set Token URI 7.1. Should be fail when token ID is nonexistent" time="0.007" classname="7.1. Should be fail when token ID is nonexistent">
+  <testsuite name="7. Set Token URI" timestamp="2023-01-16T07:11:09" tests="5" file="/home/nhat-truong/Projects/test-nft/test/ERC721.ts" time="1.963" failures="0">
+    <testcase name="ERC721 7. Set Token URI 7.1. Should be fail when token ID is nonexistent" time="0.012" classname="7.1. Should be fail when token ID is nonexistent">
     </testcase>
     <testcase name="ERC721 7. Set Token URI 7.2. Should be fail when new token URI is empty" time="0.013" classname="7.2. Should be fail when new token URI is empty">
     </testcase>
-    <testcase name="ERC721 7. Set Token URI 7.3. Should be fail when transaction is not signed by verifier" time="0.018" classname="7.3. Should be fail when transaction is not signed by verifier">
+    <testcase name="ERC721 7. Set Token URI 7.3. Should be fail when transaction is not signed by verifier" time="0.022" classname="7.3. Should be fail when transaction is not signed by verifier">
     </testcase>
-    <testcase name="ERC721 7. Set Token URI 7.4. Should be fail when signature data is invalid" time="0.017" classname="7.4. Should be fail when signature data is invalid">
+    <testcase name="ERC721 7. Set Token URI 7.4. Should be fail when signature data is invalid" time="0.030" classname="7.4. Should be fail when signature data is invalid">
     </testcase>
-    <testcase name="ERC721 7. Set Token URI 7.5. Should set successfully" time="0.036" classname="7.5. Should set successfully">
-    </testcase>
-  </testsuite>
-  <testsuite name="8. Set NFT Status" timestamp="2023-01-15T04:37:16" tests="5" file="/home/nhat-truong/Projects/test-nft/test/ERC721.ts" time="1.525" failures="0">
-    <testcase name="ERC721 8. Set NFT Status 8.1. Should be fail when set a token is nonexistent" time="0.011" classname="8.1. Should be fail when set a token is nonexistent">
-    </testcase>
-    <testcase name="ERC721 8. Set NFT Status 8.2. Should be fail when set value is equal status of current token" time="0.020" classname="8.2. Should be fail when set value is equal status of current token">
-    </testcase>
-    <testcase name="ERC721 8. Set NFT Status 8.3. Should be fail when transaction is not signed by verifier" time="0.017" classname="8.3. Should be fail when transaction is not signed by verifier">
-    </testcase>
-    <testcase name="ERC721 8. Set NFT Status 8.4. Should be fail when signature is invalid" time="0.013" classname="8.4. Should be fail when signature is invalid">
-    </testcase>
-    <testcase name="ERC721 8. Set NFT Status 8.5. Should set successfully" time="0.021" classname="8.5. Should set successfully">
+    <testcase name="ERC721 7. Set Token URI 7.5. Should set successfully" time="0.042" classname="7.5. Should set successfully">
     </testcase>
   </testsuite>
-  <testsuite name="9. Get Token URI" timestamp="2023-01-15T04:37:18" tests="3" file="/home/nhat-truong/Projects/test-nft/test/ERC721.ts" time="1.158" failures="0">
-    <testcase name="ERC721 9. Get Token URI 9.1. Should be fail when get a token is nonexistent" time="0.005" classname="9.1. Should be fail when get a token is nonexistent">
+  <testsuite name="8. Set NFT Status" timestamp="2023-01-16T07:11:11" tests="5" file="/home/nhat-truong/Projects/test-nft/test/ERC721.ts" time="1.730" failures="0">
+    <testcase name="ERC721 8. Set NFT Status 8.1. Should be fail when set a token is nonexistent" time="0.016" classname="8.1. Should be fail when set a token is nonexistent">
     </testcase>
-    <testcase name="ERC721 9. Get Token URI 9.2. Should return exactly token URI" time="0.004" classname="9.2. Should return exactly token URI">
+    <testcase name="ERC721 8. Set NFT Status 8.2. Should be fail when set value is equal status of current token" time="0.011" classname="8.2. Should be fail when set value is equal status of current token">
     </testcase>
-    <testcase name="ERC721 9. Get Token URI 9.3. Should retrieve exacty token URI after setting token URI" time="0.054" classname="9.3. Should retrieve exacty token URI after setting token URI">
+    <testcase name="ERC721 8. Set NFT Status 8.3. Should be fail when transaction is not signed by verifier" time="0.022" classname="8.3. Should be fail when transaction is not signed by verifier">
+    </testcase>
+    <testcase name="ERC721 8. Set NFT Status 8.4. Should be fail when signature is invalid" time="0.018" classname="8.4. Should be fail when signature is invalid">
+    </testcase>
+    <testcase name="ERC721 8. Set NFT Status 8.5. Should set successfully" time="0.025" classname="8.5. Should set successfully">
     </testcase>
   </testsuite>
-  <testsuite name="10. Withdraw" timestamp="2023-01-15T04:37:19" tests="7" file="/home/nhat-truong/Projects/test-nft/test/ERC721.ts" time="4.146" failures="0">
-    <testcase name="ERC721 10. Withdraw 10.1. Should be fail when caller is not owner" time="0.016" classname="10.1. Should be fail when caller is not owner">
+  <testsuite name="9. Get Token URI" timestamp="2023-01-16T07:11:13" tests="3" file="/home/nhat-truong/Projects/test-nft/test/ERC721.ts" time="0.971" failures="0">
+    <testcase name="ERC721 9. Get Token URI 9.1. Should be fail when get a token is nonexistent" time="0.014" classname="9.1. Should be fail when get a token is nonexistent">
     </testcase>
-    <testcase name="ERC721 10. Withdraw 10.2. Should be fail when recipient address is zero addess" time="0.026" classname="10.2. Should be fail when recipient address is zero addess">
+    <testcase name="ERC721 9. Get Token URI 9.2. Should return exactly token URI" time="0.005" classname="9.2. Should return exactly token URI">
     </testcase>
-    <testcase name="ERC721 10. Withdraw 10.3. Should be fail when amount is equal 0" time="0.016" classname="10.3. Should be fail when amount is equal 0">
+    <testcase name="ERC721 9. Get Token URI 9.3. Should retrieve exacty token URI after setting token URI" time="0.031" classname="9.3. Should retrieve exacty token URI after setting token URI">
     </testcase>
-    <testcase name="ERC721 10. Withdraw 10.4. Should be fail when owner withdraw native token amount greater than withdrawable amount" time="0.032" classname="10.4. Should be fail when owner withdraw native token amount greater than withdrawable amount">
+  </testsuite>
+  <testsuite name="10. Withdraw" timestamp="2023-01-16T07:11:14" tests="7" file="/home/nhat-truong/Projects/test-nft/test/ERC721.ts" time="2.718" failures="0">
+    <testcase name="ERC721 10. Withdraw 10.1. Should be fail when caller is not owner" time="0.012" classname="10.1. Should be fail when caller is not owner">
     </testcase>
-    <testcase name="ERC721 10. Withdraw 10.5. Should be fail when owner withdraw native token amount greater than withdrawable amount" time="0.040" classname="10.5. Should be fail when owner withdraw native token amount greater than withdrawable amount">
+    <testcase name="ERC721 10. Withdraw 10.2. Should be fail when recipient address is zero addess" time="0.015" classname="10.2. Should be fail when recipient address is zero addess">
+    </testcase>
+    <testcase name="ERC721 10. Withdraw 10.3. Should be fail when amount is equal 0" time="0.013" classname="10.3. Should be fail when amount is equal 0">
+    </testcase>
+    <testcase name="ERC721 10. Withdraw 10.4. Should be fail when owner withdraw native token amount greater than withdrawable amount" time="0.015" classname="10.4. Should be fail when owner withdraw native token amount greater than withdrawable amount">
+    </testcase>
+    <testcase name="ERC721 10. Withdraw 10.5. Should be fail when owner withdraw test cash token amount greater than withdrawable amount" time="0.015" classname="10.5. Should be fail when owner withdraw test cash token amount greater than withdrawable amount">
     </testcase>
     <testcase name="ERC721 10. Withdraw 10.6. Should be successful when owner withdraws native token" time="0.030" classname="10.6. Should be successful when owner withdraws native token">
     </testcase>
-    <testcase name="ERC721 10. Withdraw 10.7. Should be successful when owner withdraws cash test token" time="0.059" classname="10.7. Should be successful when owner withdraws cash test token">
+    <testcase name="ERC721 10. Withdraw 10.7. Should be successful when owner withdraws cash test token" time="0.049" classname="10.7. Should be successful when owner withdraws cash test token">
     </testcase>
   </testsuite>
-  <testsuite name="12. Transfer" timestamp="2023-01-15T04:37:23" tests="6" file="/home/nhat-truong/Projects/test-nft/test/ERC721.ts" time="3.118" failures="0">
-    <testcase name="ERC721 12. Transfer 12.1. Should be fail when sender transfer token to self" time="0.014" classname="12.1. Should be fail when sender transfer token to self">
+  <testsuite name="11. Transfer" timestamp="2023-01-16T07:11:16" tests="6" file="/home/nhat-truong/Projects/test-nft/test/ERC721.ts" time="1.974" failures="0">
+    <testcase name="ERC721 11. Transfer 11.1. Should be fail when sender transfer token to self" time="0.011" classname="11.1. Should be fail when sender transfer token to self">
     </testcase>
-    <testcase name="ERC721 12. Transfer 12.2. Should be fail when recipient address is zero address" time="0.033" classname="12.2. Should be fail when recipient address is zero address">
+    <testcase name="ERC721 11. Transfer 11.2. Should be fail when recipient address is zero address" time="0.019" classname="11.2. Should be fail when recipient address is zero address">
     </testcase>
-    <testcase name="ERC721 12. Transfer 12.3. Should be fail when token is nonexistent" time="0.012" classname="12.3. Should be fail when token is nonexistent">
+    <testcase name="ERC721 11. Transfer 11.3. Should be fail when token is nonexistent" time="0.013" classname="11.3. Should be fail when token is nonexistent">
     </testcase>
-    <testcase name="ERC721 12. Transfer 12.4. Should be fail when token is deactive" time="0.037" classname="12.4. Should be fail when token is deactive">
+    <testcase name="ERC721 11. Transfer 11.4. Should be fail when token is deactive" time="0.029" classname="11.4. Should be fail when token is deactive">
     </testcase>
-    <testcase name="ERC721 12. Transfer 12.5. Should be fail when token is not owned by sender" time="0.016" classname="12.5. Should be fail when token is not owned by sender">
+    <testcase name="ERC721 11. Transfer 11.5. Should be fail when token is not owned by sender" time="0.021" classname="11.5. Should be fail when token is not owned by sender">
     </testcase>
-    <testcase name="ERC721 12. Transfer 12.6. Should transfer successfully" time="0.150" classname="12.6. Should transfer successfully">
-    </testcase>
-  </testsuite>
-  <testsuite name="13. Buy" timestamp="2023-01-15T04:37:26" tests="3" file="/home/nhat-truong/Projects/test-nft/test/ERC721.ts" time="0.000" failures="0">
-    <testcase name="ERC721 13. Buy 13.1. Should be fail when buy a nonexistent token" time="0.006" classname="13.1. Should be fail when buy a nonexistent token">
-    </testcase>
-    <testcase name="ERC721 13. Buy 13.2. Should be fail when buy an owned token" time="0.014" classname="13.2. Should be fail when buy an owned token">
-    </testcase>
-    <testcase name="ERC721 13. Buy 13.3. Should be fail when token is deactive" time="0.026" classname="13.3. Should be fail when token is deactive">
+    <testcase name="ERC721 11. Transfer 11.6. Should transfer successfully" time="0.096" classname="11.6. Should transfer successfully">
     </testcase>
   </testsuite>
-  <testsuite name="13.4. Buy without royalty" timestamp="2023-01-15T04:37:28" tests="2" file="/home/nhat-truong/Projects/test-nft/test/ERC721.ts" time="0.854" failures="0">
-    <testcase name="ERC721 13. Buy 13.4. Buy without royalty 13.4.1. Should be successful when user buys a token paid by native token" time="0.046" classname="13.4.1. Should be successful when user buys a token paid by native token">
+  <testsuite name="12. Buy" timestamp="2023-01-16T07:11:18" tests="3" file="/home/nhat-truong/Projects/test-nft/test/ERC721.ts" time="0.000" failures="0">
+    <testcase name="ERC721 12. Buy 12.1. Should be fail when buy a nonexistent token" time="0.020" classname="12.1. Should be fail when buy a nonexistent token">
     </testcase>
-    <testcase name="ERC721 13. Buy 13.4. Buy without royalty 13.4.2. Should be successful when user buys a token paid by test cash token" time="0.065" classname="13.4.2. Should be successful when user buys a token paid by test cash token">
+    <testcase name="ERC721 12. Buy 12.2. Should be fail when buy an owned token" time="0.014" classname="12.2. Should be fail when buy an owned token">
     </testcase>
-  </testsuite>
-  <testsuite name="13.5. Buy with royalty" timestamp="2023-01-15T04:37:29" tests="2" file="/home/nhat-truong/Projects/test-nft/test/ERC721.ts" time="0.859" failures="0">
-    <testcase name="ERC721 13. Buy 13.5. Buy with royalty 13.5.1. Should be successful when user buys a token paid by native token" time="0.041" classname="13.5.1. Should be successful when user buys a token paid by native token">
-    </testcase>
-    <testcase name="ERC721 13. Buy 13.5. Buy with royalty 13.5.2. Should be successful when user buys a token paid by test cash token" time="0.090" classname="13.5.2. Should be successful when user buys a token paid by test cash token">
+    <testcase name="ERC721 12. Buy 12.3. Should be fail when token is deactive" time="0.031" classname="12.3. Should be fail when token is deactive">
     </testcase>
   </testsuite>
-  <testsuite name="VerifySignature" timestamp="2023-01-15T04:37:30" tests="1" file="/home/nhat-truong/Projects/test-nft/test/VerifySignature.ts" time="0.083" failures="0">
-    <testcase name="VerifySignature Check signature" time="0.041" classname="Check signature">
+  <testsuite name="12.4. Buy without royalty" timestamp="2023-01-16T07:11:20" tests="2" file="/home/nhat-truong/Projects/test-nft/test/ERC721.ts" time="0.984" failures="0">
+    <testcase name="ERC721 12. Buy 12.4. Buy without royalty 12.4.1. Should be successful when user buys a token paid by native token" time="0.048" classname="12.4.1. Should be successful when user buys a token paid by native token">
+    </testcase>
+    <testcase name="ERC721 12. Buy 12.4. Buy without royalty 12.4.2. Should be successful when user buys a token paid by test cash token" time="0.063" classname="12.4.2. Should be successful when user buys a token paid by test cash token">
     </testcase>
   </testsuite>
-  <testsuite name="ERC721 Integration" timestamp="2023-01-15T04:37:30" tests="3" file="/home/nhat-truong/Projects/test-nft/test/integration/ERC721.ts" time="1.326" failures="0">
-    <testcase name="ERC721 Integration 1.1. Mint token by paying native token without royalty =&gt; Transfer token =&gt; Owner of contract withdraws" time="0.109" classname="1.1. Mint token by paying native token without royalty =&gt; Transfer token =&gt; Owner of contract withdraws">
+  <testsuite name="12.5. Buy with royalty" timestamp="2023-01-16T07:11:21" tests="2" file="/home/nhat-truong/Projects/test-nft/test/ERC721.ts" time="0.940" failures="0">
+    <testcase name="ERC721 12. Buy 12.5. Buy with royalty 12.5.1. Should be successful when user buys a token paid by native token" time="0.044" classname="12.5.1. Should be successful when user buys a token paid by native token">
     </testcase>
-    <testcase name="ERC721 Integration 1.2. Mint token by paying test cash token with royalty =&gt; Transfer token =&gt; Owner of contract withdraws" time="0.160" classname="1.2. Mint token by paying test cash token with royalty =&gt; Transfer token =&gt; Owner of contract withdraws">
+    <testcase name="ERC721 12. Buy 12.5. Buy with royalty 12.5.2. Should be successful when user buys a token paid by test cash token" time="0.081" classname="12.5.2. Should be successful when user buys a token paid by test cash token">
     </testcase>
-    <testcase name="ERC721 Integration 1.3. A user buys a token with royalty =&gt; Someone buys this token =&gt; Money will be transfered properly" time="0.148" classname="1.3. A user buys a token with royalty =&gt; Someone buys this token =&gt; Money will be transfered properly">
+  </testsuite>
+  <testsuite name="Verify Signature" timestamp="2023-01-16T07:11:22" tests="3" file="/home/nhat-truong/Projects/test-nft/test/VerifySignature.ts" time="0.231" failures="0">
+    <testcase name="Verify Signature 1. Should verify fail when signer is wrong" time="0.019" classname="1. Should verify fail when signer is wrong">
+    </testcase>
+    <testcase name="Verify Signature 2. Should verify fail when data is wrong" time="0.017" classname="2. Should verify fail when data is wrong">
+    </testcase>
+    <testcase name="Verify Signature 3. Should verify successfully" time="0.016" classname="3. Should verify successfully">
+    </testcase>
+  </testsuite>
+  <testsuite name="ERC721 Integration" timestamp="2023-01-16T07:11:22" tests="3" file="/home/nhat-truong/Projects/test-nft/test/integration/ERC721.ts" time="1.311" failures="0">
+    <testcase name="ERC721 Integration 1.1. Mint token by paying native token without royalty =&gt; Transfer token =&gt; Owner of contract withdraws" time="0.100" classname="1.1. Mint token by paying native token without royalty =&gt; Transfer token =&gt; Owner of contract withdraws">
+    </testcase>
+    <testcase name="ERC721 Integration 1.2. Mint token by paying test cash token with royalty =&gt; Transfer token =&gt; Owner of contract withdraws" time="0.171" classname="1.2. Mint token by paying test cash token with royalty =&gt; Transfer token =&gt; Owner of contract withdraws">
+    </testcase>
+    <testcase name="ERC721 Integration 1.3. A user buys a token with royalty =&gt; Someone buys this token =&gt; Money will be transfered properly" time="0.154" classname="1.3. A user buys a token with royalty =&gt; Someone buys this token =&gt; Money will be transfered properly">
     </testcase>
   </testsuite>
 </testsuites>

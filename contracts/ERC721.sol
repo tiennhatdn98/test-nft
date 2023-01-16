@@ -348,21 +348,6 @@ contract ERC721 is
 				_tokenInput.amount - _tokenInput.price
 			);
 		}
-
-		// if (_tokenInput.paymentToken == address(0)) {
-		// 	payable(_tokenInput.owner).sendValue(_tokenInput.price);
-		// } else {
-		// 	IERC20Upgradeable(_tokenInput.paymentToken).safeTransferFrom(
-		// 		_msgSender(),
-		// 		_tokenInput.owner,
-		// 		_tokenInput.price
-		// 	);
-		// 	IERC20Upgradeable(_tokenInput.paymentToken).safeTransferFrom(
-		// 		_msgSender(),
-		// 		address(this),
-		// 		_tokenInput.amount - _tokenInput.price
-		// 	);
-		// }
 	}
 
 	/**
@@ -412,21 +397,6 @@ contract ERC721 is
 				_tokenInput.amount - _tokenInput.price
 			);
 		}
-
-		// if (_tokenInput.paymentToken == address(0)) {
-		// 	payable(_tokenInput.owner).sendValue(_tokenInput.price);
-		// } else {
-		// 	IERC20Upgradeable(_tokenInput.paymentToken).safeTransferFrom(
-		// 		_msgSender(),
-		// 		_tokenInput.owner,
-		// 		_tokenInput.price
-		// 	);
-		// 	IERC20Upgradeable(_tokenInput.paymentToken).safeTransferFrom(
-		// 		_msgSender(),
-		// 		address(this),
-		// 		_tokenInput.amount - _tokenInput.price
-		// 	);
-		// }
 	}
 
 	/**
