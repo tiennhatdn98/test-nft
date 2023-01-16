@@ -36,7 +36,7 @@ contract ERC721 is
 	/**
 	 * @notice Default royalty info
 	 */
-	RoyaltyInfo public defaultRoyaltyInfo;
+	uint96 public royaltyPercentage;
 
 	/**
 	 * @notice expiration uint256 is expired period of token
@@ -44,38 +44,29 @@ contract ERC721 is
 	uint256 public expiration;
 
 	/**
-	 * @notice Mapping token ID to token information
+	 * @notice Mapping token ID to token payment
 	 */
-	mapping(uint256 => TokenInfo) public tokens;
+	mapping(uint256 => TokenPayment) private _tokenPayments;
+
+	/**
+	 * @notice Mapping token ID to token URI
+	 */
+	mapping(uint256 => string) private _tokenURIs;
 
 	/**
 	 * @notice Mapping token ID expiration timestamp to store expired timestamp of each token
 	 */
-	mapping(uint256 => uint256) public expirationOf;
+	mapping(uint256 => uint256) public expireOf;
 
 	/**
 	 * @notice Mapping token ID to boolean to store status of each token (active or deactive)
 	 */
-	mapping(uint256 => bool) public statusOf;
-
-	/**
-	 * @notice Mapping token address to owner address to balance to store balance of token of each address
-	 */
-	mapping(address => mapping(address => uint256)) public ownerBalanceOf;
-
-	/**
-	 * @notice Mapping token address to change amount when mint token
-	 */
-	mapping(address => uint256) public changeOf;
-
-	/**
-	 * @notice Mapping token ID and URI to store token URIs
-	 */
+	mapping(uint256 => bool) public isActiveOf;
 
 	/**
 	 * @notice Mapping signature to token ID
 	 */
-	// mapping(bytes => uint256) public tokenIdOf;
+	mapping(bytes => uint256) public tokenIdOf;
 
 	/**
 	 * @notice Emit event when contract is deployed
@@ -85,7 +76,6 @@ contract ERC721 is
 		string tokenName,
 		string symbol,
 		uint256 expiration,
-		address royaltyReceiver,
 		uint256 royaltyPercentage
 	);
 
@@ -101,7 +91,7 @@ contract ERC721 is
 	/**
 	 * @notice Emit event when set status of a token
 	 */
-	event SetTokenStatus(uint256 indexed tokenId, bool status);
+	event SetNFTStatus(uint256 indexed tokenId, bool status);
 
 	/**
 	 * @notice Emit event when set status of a token
@@ -144,7 +134,6 @@ contract ERC721 is
 	 *  @param  _tokenName  					Token name
 	 *  @param  _symbol     					Token symbol
 	 *  @param  _expiration     			Expired period of token
-	 *  @param  _royaltyReceiver     	Royalty receiver address
 	 *  @param  _royaltyPercentage   	Royalty percentage
 	 *
 	 *  Emit event {Deployed}
@@ -154,7 +143,6 @@ contract ERC721 is
 		string memory _tokenName,
 		string memory _symbol,
 		uint256 _expiration,
-		address _royaltyReceiver,
 		uint96 _royaltyPercentage
 	) public initializer {
 		ReentrancyGuardUpgradeable.__ReentrancyGuard_init();
@@ -163,21 +151,13 @@ contract ERC721 is
 		transferOwnership(_owner);
 
 		expiration = _expiration;
+		royaltyPercentage = _royaltyPercentage;
 
-		if (_royaltyReceiver != address(0)) {
-			require(_royaltyPercentage > 0, "Invalid royalty percentage");
-			defaultRoyaltyInfo = RoyaltyInfo(
-				_royaltyReceiver,
-				_royaltyPercentage
-			);
-			_setDefaultRoyalty(_royaltyReceiver, _royaltyPercentage);
-		}
 		emit Deployed(
 			_owner,
 			_tokenName,
 			_symbol,
 			_expiration,
-			_royaltyReceiver,
 			_royaltyPercentage
 		);
 	}
@@ -194,7 +174,7 @@ contract ERC721 is
 	 */
 	function _isValidTokenInput(
 		address _to,
-		TokenInfo memory _tokenInput,
+		TokenDetail memory _tokenInput,
 		bytes memory _signature
 	) private view {
 		require(_to != address(0) && !_to.isContract(), "Invalid address");
@@ -251,7 +231,7 @@ contract ERC721 is
 	) external {
 		require(_exists(_tokenId), "Nonexistent token");
 		require(bytes(_tokenURI).length > 0, "Empty URI");
-		TokenInfo memory _tokenInput = TokenInfo(
+		TokenDetail memory _tokenInput = TokenDetail(
 			_tokenId,
 			0,
 			0,
@@ -261,8 +241,8 @@ contract ERC721 is
 			true
 		);
 		require(verify(verifier, _tokenInput, _signature), "Invalid signature");
-		string memory oldTokenURI = tokens[_tokenId].tokenURI;
-		tokens[_tokenId].tokenURI = _tokenURI;
+		string memory oldTokenURI = _tokenURIs[_tokenId];
+		_tokenURIs[_tokenId] = _tokenURI;
 		emit SetTokenURI(_tokenId, oldTokenURI, _tokenURI);
 	}
 
@@ -276,14 +256,14 @@ contract ERC721 is
 	 *
 	 *  Emit event {SetTokenStatus}
 	 */
-	function setTokenStatus(
+	function setNFTStatus(
 		uint256 _tokenId,
 		bool _status,
 		bytes memory _signature
 	) external {
 		require(_exists(_tokenId), "Nonexistent token");
-		require(statusOf[_tokenId] != _status, "Duplicate value");
-		TokenInfo memory _tokenInput = TokenInfo(
+		require(isActiveOf[_tokenId] != _status, "Duplicate value");
+		TokenDetail memory _tokenInput = TokenDetail(
 			_tokenId,
 			0,
 			0,
@@ -293,9 +273,8 @@ contract ERC721 is
 			_status
 		);
 		require(verify(verifier, _tokenInput, _signature), "Invalid signature");
-		statusOf[_tokenId] = _status;
-		tokens[_tokenId].status = _status;
-		emit SetTokenStatus(_tokenId, _status);
+		isActiveOf[_tokenId] = _status;
+		emit SetNFTStatus(_tokenId, _status);
 	}
 
 	/**
@@ -311,7 +290,7 @@ contract ERC721 is
 		uint256 _tokenId
 	) public view virtual override returns (string memory) {
 		require(_exists(_tokenId), "Nonexistent token.");
-		return tokens[_tokenId].tokenURI;
+		return _tokenURIs[_tokenId];
 	}
 
 	/**
@@ -349,19 +328,26 @@ contract ERC721 is
 	 */
 	function mint(
 		address _to,
-		TokenInfo memory _tokenInput,
+		TokenDetail memory _tokenInput,
 		bytes memory _signature
-	) external payable nonReentrant returns (uint256 tokenId) {
+	) external payable nonReentrant {
 		_isValidTokenInput(_to, _tokenInput, _signature);
-		lastId.increment();
-		tokenId = lastId.current();
-		_safeMint(_to, tokenId);
-		statusOf[tokenId] = true;
-		expirationOf[tokenId] = block.timestamp + expiration;
-		// tokenIdOf[_signature] = tokenId;
-		_tokenInput.tokenId = tokenId;
-		tokens[tokenId] = _tokenInput;
-		_updateBalance(_msgSender(), address(this), _tokenInput);
+		_beforeMint(_tokenInput, _signature);
+		_safeMint(_to, lastId.current());
+		_handleTransfer(
+			_msgSender(),
+			_tokenInput.owner,
+			_tokenInput.paymentToken,
+			_tokenInput.price
+		);
+		if (_tokenInput.paymentToken != address(0)) {
+			_handleTransfer(
+				_msgSender(),
+				address(this),
+				_tokenInput.paymentToken,
+				_tokenInput.amount - _tokenInput.price
+			);
+		}
 	}
 
 	/**
@@ -385,31 +371,32 @@ contract ERC721 is
 	 */
 	function mintWithRoyalty(
 		address _to,
-		TokenInfo memory _tokenInput,
+		TokenDetail memory _tokenInput,
 		bytes memory _signature,
 		address _royaltyReceiver
-	) external payable nonReentrant returns (uint256 tokenId) {
+	) external payable nonReentrant {
 		_isValidTokenInput(_to, _tokenInput, _signature);
-		lastId.increment();
-		tokenId = lastId.current();
-		_safeMint(_to, tokenId);
-		statusOf[tokenId] = true;
-		expirationOf[tokenId] = block.timestamp + expiration;
-		// tokenIdOf[_signature] = tokenId;
-		_tokenInput.tokenId = tokenId;
-		tokens[tokenId] = _tokenInput;
-		_royaltyReceiver == address(0)
-			? _setTokenRoyalty(
-				tokenId,
-				defaultRoyaltyInfo.receiver,
-				defaultRoyaltyInfo.royaltyFraction
-			)
-			: _setTokenRoyalty(
-				tokenId,
-				_royaltyReceiver,
-				defaultRoyaltyInfo.royaltyFraction
+		require(
+			_royaltyReceiver != address(0) && !_royaltyReceiver.isContract(),
+			"Invalid royalty receiver"
+		);
+		_beforeMint(_tokenInput, _signature);
+		_safeMint(_to, lastId.current());
+		_setTokenRoyalty(lastId.current(), _royaltyReceiver, royaltyPercentage);
+		_handleTransfer(
+			_msgSender(),
+			_tokenInput.owner,
+			_tokenInput.paymentToken,
+			_tokenInput.price
+		);
+		if (_tokenInput.paymentToken != address(0)) {
+			_handleTransfer(
+				_msgSender(),
+				address(this),
+				_tokenInput.paymentToken,
+				_tokenInput.amount - _tokenInput.price
 			);
-		_updateBalance(_msgSender(), address(this), _tokenInput);
+		}
 	}
 
 	/**
@@ -430,44 +417,11 @@ contract ERC721 is
 		uint256 _amount
 	) external nonReentrant onlyOwner {
 		require(_to != address(0), "Invalid address");
-		require(
-			_amount > 0 && _amount <= changeOf[_paymentToken],
-			"Invalid amount"
-		);
-		changeOf[_paymentToken] -= _amount;
+		require(_amount > 0, "Invalid amount");
 		_paymentToken == address(0)
 			? payable(_to).sendValue(_amount)
 			: IERC20Upgradeable(_paymentToken).safeTransfer(_to, _amount);
 		emit Withdrawn(_paymentToken, _to, _amount);
-	}
-
-	/**
-	 *  @notice Local government claims money
-	 *
-	 *  @dev    Anyone can call this function
-	 *
-	 *          Name            Meaning
-	 *  @param  _paymentToken   Address of token that want tot withdraw (Zero address if claim native token)
-	 *  @param  _to             Recipient address
-	 *  @param  _amount         Amount of payment token that want to withdraw
-	 *
-	 *  Emit event {Claimed}
-	 */
-	function claim(
-		address _paymentToken,
-		address _to,
-		uint256 _amount
-	) external nonReentrant {
-		require(_to != address(0), "Invalid address");
-		require(
-			_amount > 0 && _amount <= ownerBalanceOf[_paymentToken][_to],
-			"Invalid amount"
-		);
-		ownerBalanceOf[_paymentToken][_to] -= _amount;
-		_paymentToken == address(0)
-			? payable(_to).sendValue(_amount)
-			: IERC20Upgradeable(_paymentToken).safeTransfer(_to, _amount);
-		emit Claimed(_paymentToken, _to, _amount);
 	}
 
 	/**
@@ -484,8 +438,8 @@ contract ERC721 is
 	function transfer(address _to, uint256 _tokenId) external {
 		require(_msgSender() != _to, "Transfer to yourself");
 		require(_exists(_tokenId), "Nonexistent token.");
-		require(statusOf[_tokenId], "Token is deactive");
-		expirationOf[_tokenId] = block.timestamp + expiration;
+		require(isActiveOf[_tokenId], "Token is deactive");
+		expireOf[_tokenId] = block.timestamp + expiration;
 		safeTransferFrom(_msgSender(), _to, _tokenId);
 	}
 
@@ -502,25 +456,28 @@ contract ERC721 is
 	function buy(uint256 _tokenId) external payable nonReentrant {
 		require(_exists(_tokenId), "Nonexistent token.");
 		require(ownerOf(_tokenId) != _msgSender(), "Already owned");
-		require(statusOf[_tokenId], "Token is deactive");
+		require(isActiveOf[_tokenId], "Token is deactive");
 
-		TokenInfo memory token = tokens[_tokenId];
+		TokenPayment memory token = _tokenPayments[_tokenId];
 		(address royaltyReceiver, uint256 royaltyFraction) = royaltyInfo(
 			_tokenId,
 			token.price
 		);
+
 		_handleTransfer(
 			_msgSender(),
 			ownerOf(_tokenId),
 			token.paymentToken,
 			token.price - royaltyFraction
 		);
-		_handleTransfer(
-			_msgSender(),
-			royaltyReceiver,
-			token.paymentToken,
-			royaltyFraction
-		);
+		if (royaltyReceiver != address(0)) {
+			_handleTransfer(
+				_msgSender(),
+				royaltyReceiver,
+				token.paymentToken,
+				royaltyFraction
+			);
+		}
 		_safeTransfer(ownerOf(_tokenId), _msgSender(), _tokenId, "");
 		emit Bought(_msgSender(), _tokenId);
 	}
@@ -552,35 +509,27 @@ contract ERC721 is
 	}
 
 	/**
-	 *  @notice Update balance data and take money from user when mint token
+	 *  @notice Update token states before minting
 	 *
 	 * 	@dev 		Private function
 	 *
 	 *          Name        	Meaning
-	 *  @param  _from       	Mint token caller
-	 *  @param  _to   				Recipient address
+	 *  @param  _signature    Mint token caller
 	 *  @param  _tokenInput  	Token info
 	 */
-	function _updateBalance(
-		address _from,
-		address _to,
-		TokenInfo memory _tokenInput
+	function _beforeMint(
+		TokenDetail memory _tokenInput,
+		bytes memory _signature
 	) private {
-		ownerBalanceOf[_tokenInput.paymentToken][
-			_tokenInput.owner
-		] += _tokenInput.price;
-		if (_tokenInput.amount > _tokenInput.price) {
-			changeOf[_tokenInput.paymentToken] +=
-				_tokenInput.amount -
-				_tokenInput.price;
-		}
-		if (_tokenInput.paymentToken != address(0)) {
-			_handleTransfer(
-				_from,
-				_to,
-				_tokenInput.paymentToken,
-				_tokenInput.amount
-			);
-		}
+		lastId.increment();
+		uint256 tokenId = lastId.current();
+		isActiveOf[tokenId] = true;
+		expireOf[tokenId] = block.timestamp + expiration;
+		tokenIdOf[_signature] = tokenId;
+		_tokenURIs[tokenId] = _tokenInput.tokenURI;
+		_tokenPayments[tokenId] = TokenPayment(
+			_tokenInput.paymentToken,
+			_tokenInput.price
+		);
 	}
 }

@@ -93,8 +93,8 @@ contract VerifySignature {
     */
 	function verify(
 		address _signer,
-		TokenInfo memory _tokenInput,
-		bytes memory signature
+		TokenDetail memory _tokenInput,
+		bytes memory _signature
 	) public pure returns (bool) {
 		bytes32 messageHash = getMessageHash(
 			_tokenInput.tokenId,
@@ -107,7 +107,7 @@ contract VerifySignature {
 		);
 		bytes32 ethSignedMessageHash = getEthSignedMessageHash(messageHash);
 
-		return recoverSigner(ethSignedMessageHash, signature) == _signer;
+		return recoverSigner(ethSignedMessageHash, _signature) == _signer;
 	}
 
 	function recoverSigner(
@@ -120,9 +120,9 @@ contract VerifySignature {
 	}
 
 	function splitSignature(
-		bytes memory sig
+		bytes memory _signature
 	) public pure returns (bytes32 r, bytes32 s, uint8 v) {
-		require(sig.length == 65, "invalid signature length");
+		require(_signature.length == 65, "invalid signature length");
 
 		assembly {
 			/*
@@ -135,11 +135,11 @@ contract VerifySignature {
 			*/
 
 			// first 32 bytes, after the length prefix
-			r := mload(add(sig, 32))
+			r := mload(add(_signature, 32))
 			// second 32 bytes
-			s := mload(add(sig, 64))
+			s := mload(add(_signature, 64))
 			// final byte (first byte of the next 32 bytes)
-			v := byte(0, mload(add(sig, 96)))
+			v := byte(0, mload(add(_signature, 96)))
 		}
 
 		// implicitly return (r, s, v)
