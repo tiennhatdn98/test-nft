@@ -2,7 +2,7 @@
 pragma solidity 0.8.16;
 
 import "@openzeppelin/contracts-upgradeable/token/ERC721/ERC721Upgradeable.sol";
-// import "@openzeppelin/contracts-upgradeable/token/ERC721/extensions/ERC721EnumerableUpgradeable.sol";
+import "@openzeppelin/contracts-upgradeable/token/ERC721/extensions/ERC721EnumerableUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/token/common/ERC2981Upgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/utils/StringsUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/utils/CountersUpgradeable.sol";
@@ -16,7 +16,7 @@ import "./VerifySignature.sol";
 
 contract ERC721 is
 	ERC721Upgradeable,
-	// ERC721EnumerableUpgradeable,
+	ERC721EnumerableUpgradeable,
 	ERC2981Upgradeable,
 	Authorizable,
 	VerifySignature,
@@ -163,6 +163,48 @@ contract ERC721 is
 	}
 
 	/**
+	 * @dev See {IERC165-supportsInterface}.
+	 */
+	function supportsInterface(
+		bytes4 interfaceId
+	)
+		public
+		view
+		override(
+			ERC721Upgradeable,
+			ERC2981Upgradeable,
+			ERC721EnumerableUpgradeable
+		)
+		returns (bool)
+	{
+		return super.supportsInterface(interfaceId);
+	}
+
+	/**
+	 * @dev Hook that is called before any token transfer. This includes minting
+	 * and burning.
+	 *
+	 * Calling conditions:
+	 *
+	 * - When `from` and `to` are both non-zero, ``from``'s `tokenId` will be
+	 * transferred to `to`.
+	 * - When `from` is zero, `tokenId` will be minted for `to`.
+	 * - When `to` is zero, ``from``'s `tokenId` will be burned.
+	 * - `from` cannot be the zero address.
+	 * - `to` cannot be the zero address.
+	 *
+	 * To learn more about hooks, head to xref:ROOT:extending-contracts.adoc#using-hooks[Using Hooks].
+	 */
+	function _beforeTokenTransfer(
+		address from,
+		address to,
+		uint256 tokenId,
+		uint256 batchSize
+	) internal override(ERC721Upgradeable, ERC721EnumerableUpgradeable) {
+		super._beforeTokenTransfer(from, to, tokenId, batchSize);
+	}
+
+	/**
 	 *  @notice Check token input is valid or not
 	 *
 	 *  @dev    Private function
@@ -198,20 +240,6 @@ contract ERC721 is
 			"Invalid owner address"
 		);
 		require(verify(verifier, _tokenInput, _signature), "Invalid signature");
-	}
-
-	/**
-	 * @dev See {IERC165-supportsInterface}.
-	 */
-	function supportsInterface(
-		bytes4 interfaceId
-	)
-		public
-		view
-		override(ERC721Upgradeable, ERC2981Upgradeable)
-		returns (bool)
-	{
-		return super.supportsInterface(interfaceId);
 	}
 
 	/**
