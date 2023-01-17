@@ -54,8 +54,24 @@ contract Sale is Authorizable, ReentrancyGuardUpgradeable {
 		uint256 price
 	);
 
-	function isValidSale(uint256 _saleId) private view returns (bool) {
-		return _saleId > 0 && _saleId <= lastId.current();
+	event Cancelled(uint256 saleId);
+
+	/**
+	 *  @notice Update new base URI
+	 *
+	 *  @dev    Only owner or controller can call this function
+	 *
+	 *  Emit event {Deployed}
+	 */
+	function initialize(address _owner) public initializer {
+		ReentrancyGuardUpgradeable.__ReentrancyGuard_init();
+		__Ownable_init();
+		transferOwnership(_owner);
+	}
+
+	modifier onlyValidSale(uint256 _saleId) {
+		require(_saleId > 0 && _saleId <= lastId.current(), "Nonexistent sale");
+		_;
 	}
 
 	function isAvaiableSale(uint256 _saleId) private view returns (bool) {
@@ -95,14 +111,17 @@ contract Sale is Authorizable, ReentrancyGuardUpgradeable {
 		emit Created(lastId.current(), sales[lastId.current()]);
 	}
 
-	function update(uint256 _saleId, SaleToken[] memory _tokens) external {
+	function update(
+		uint256 _saleId,
+		SaleToken[] memory _tokens
+	) external onlyValidSale(_saleId) {
 		require(
 			_msgSender() == sales[_saleId].manager,
 			"Caller is must be manager of sale"
 		);
-		require(isValidSale(_saleId), "Invalid sale ID");
-		require(sales[_saleId].status == SaleStatus.LIVE, "Sale is cancelled");
-		require(_tokens.length > 0 && _tokens.length <= 50, "Limit length");
+		require(sales[_saleId].status == SaleStatus.LIVE, "Sale was cancelled");
+		require(_tokens.length > 0, "Empty token ids");
+		require(_tokens.length <= 50, "Limit length");
 		for (uint256 i = 0; i < _tokens.length; i++) {
 			require(
 				tokens[_saleId][_tokens[i].tokenId].status != TokenStatus.SOLD,
@@ -113,8 +132,10 @@ contract Sale is Authorizable, ReentrancyGuardUpgradeable {
 		}
 	}
 
-	function buy(uint256 _saleId, uint256 _tokenId) external payable {
-		require(isValidSale(_saleId), "Invalid sale ID");
+	function buy(
+		uint256 _saleId,
+		uint256 _tokenId
+	) external payable onlyValidSale(_saleId) nonReentrant {
 		require(sales[_saleId].status == SaleStatus.LIVE, "Sale is cancelled");
 		require(
 			tokens[_saleId][_tokenId].status == TokenStatus.AVAILABLE,
@@ -134,5 +155,24 @@ contract Sale is Authorizable, ReentrancyGuardUpgradeable {
 					tokens[_saleId][_tokenId].price
 				);
 		}
+	}
+
+	function cancel(uint256 _saleId) external onlyValidSale(_saleId) {
+		require(
+			_msgSender() == sales[_saleId].manager,
+			"Caller is not manager of sale"
+		);
+		require(
+			sales[_saleId].status != SaleStatus.CANCELLED,
+			"Sale is already cancelled"
+		);
+		sales[_saleId].status = SaleStatus.CANCELLED;
+		emit Cancelled(_saleId);
+	}
+
+	function getTokenIds(
+		uint256 _saleId
+	) external view returns (uint256[] memory) {
+		return sales[_saleId].tokenIds;
 	}
 }

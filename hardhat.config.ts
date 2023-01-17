@@ -50,6 +50,7 @@ const config: HardhatUserConfig = {
     binance_testnet: {
       url: process.env.BINANCE_TESTNET_RPC,
       accounts: [SYSTEM_TEST_PRIVATE_KEY],
+      chainId: 97,
     },
     goerli: {
       url: process.env.GOERLI_RPC,
@@ -79,7 +80,7 @@ const config: HardhatUserConfig = {
     strict: true,
   },
   gasReporter: {
-    enabled: true,
+    enabled: false,
     currency: "USD",
     token: "BNB",
     gasPrice: 30,

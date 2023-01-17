@@ -20,8 +20,9 @@ async function main() {
 
   // Loading contract factory
   // const ERC721 = await ethers.getContractFactory("TokenERC721");
-  const CashTestToken = await ethers.getContractFactory("CashTestToken");
+  // const CashTestToken = await ethers.getContractFactory("CashTestToken");
   // const TestNFT = await ethers.getContractFactory("TestNFT");
+  const Sale = await ethers.getContractFactory("Sale");
 
   // Deploy contracts
   console.log(
@@ -45,13 +46,17 @@ async function main() {
   // await erc721.deployed();
   // console.log("ERC721 deployed to: >>", erc721.address);
 
-  const cashTestToken = await CashTestToken.deploy(tokenName, symbol, decimal);
-  await cashTestToken.deployed();
-  console.log("Cash Test Token deployed to: >>", cashTestToken.address);
+  // const cashTestToken = await CashTestToken.deploy(tokenName, symbol, decimal);
+  // await cashTestToken.deployed();
+  // console.log("Cash Test Token deployed to: >>", cashTestToken.address);
 
   // const testNft = await TestNFT.deploy("NFT", "NFT");
   // await testNft.deployed();
   // console.log("Test NFT deployed to: >>", testNft.address);
+
+  const sale = await upgrades.deployProxy(Sale, []);
+  await sale.deployed();
+  console.log("Sale deployed to: >>", sale.address);
 
   // const erc721Verify = await upgrades.erc1967.getImplementationAddress(
   //   erc721.address
