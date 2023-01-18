@@ -36,6 +36,8 @@ interface IERC721 is IERC721MetadataUpgradeable {
 	function transfer(address _from, address _to, uint256 _tokenId) external;
 
 	function buy(uint256 _tokenId) external;
+
+	function isERC721(address _nftAddress) external view returns (bool);
 }
 
 struct TokenDetail {

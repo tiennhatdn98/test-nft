@@ -966,7 +966,7 @@ describe("ERC721", () => {
     });
   });
 
-  describe("12. Buy", () => {
+  describe.only("12. Buy", () => {
     const price = ethers.utils.parseEther("1");
     const amount = ethers.utils.parseEther("1");
     const tokenPrice = ethers.utils.parseUnits("1", DECIMALS);

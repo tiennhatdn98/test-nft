@@ -1,22 +1,57 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<testsuites name="Mocha Tests" time="2.021" tests="1" failures="1">
-  <testsuite name="Root Suite" timestamp="2023-01-17T10:16:41" tests="0" time="0.000" failures="0">
+<testsuites name="Mocha Tests" time="6.548" tests="6" failures="5">
+  <testsuite name="Root Suite" timestamp="2023-01-18T10:08:28" tests="0" time="0.000" failures="0">
   </testsuite>
-  <testsuite name="Sale" timestamp="2023-01-17T10:16:41" tests="0" file="/home/nhat-truong/Projects/test-nft/test/Sale.ts" time="0.000" failures="0">
+  <testsuite name="Sale" timestamp="2023-01-18T10:08:28" tests="0" file="/home/nhat-truong/Projects/test-nft/test/Sale.ts" time="0.000" failures="0">
   </testsuite>
-  <testsuite name="2. Update" timestamp="2023-01-17T10:16:41" tests="1" file="/home/nhat-truong/Projects/test-nft/test/Sale.ts" time="1.957" failures="1">
-    <testcase name="Sale 2. Update 2.6. Should be fail when update a sale with token is sold" time="0.019" classname="2.6. Should be fail when update a sale with token is sold">
-      <failure message="Transaction reverted: function selector was not recognized and there&apos;s no fallback function" type="Error"><![CDATA[Error: Transaction reverted: function selector was not recognized and there's no fallback function
-    at CashTestToken.<unrecognized-selector> (contracts/CashTestToken.sol:9)
-    at Sale.buy (contracts/Sale.sol:148)
-    at <UnrecognizedContract>.<unknown> (0x5fc8d32690cc91d4c39d9d3abcbd16989f875707)
+  <testsuite name="1. Create Sale" timestamp="2023-01-18T10:08:28" tests="6" file="/home/nhat-truong/Projects/test-nft/test/Sale.ts" time="6.483" failures="5">
+    <testcase name="Sale 1. Create Sale 1.1. Should be fail when token contract address is not ERC-721 token" time="0.027" classname="1.1. Should be fail when token contract address is not ERC-721 token">
+    </testcase>
+    <testcase name="Sale 1. Create Sale 1.2. Should be fail when token IDs is empty" time="0.024" classname="1.2. Should be fail when token IDs is empty">
+      <failure message="Expected transaction to be reverted with reason &apos;Empty token ids&apos;, but it reverted with reason &apos;Invalid token address&apos;" type="AssertionError"><![CDATA[AssertionError: Expected transaction to be reverted with reason 'Empty token ids', but it reverted with reason 'Invalid token address'
+    at processTicksAndRejections (internal/process/task_queues.js:95:5)
+    at runNextTicks (internal/process/task_queues.js:64:3)
+    at listOnTimeout (internal/timers.js:526:9)
+    at processTimers (internal/timers.js:500:7)
+    at async Context.<anonymous> (test/Sale.ts:147:7)]]></failure>
+    </testcase>
+    <testcase name="Sale 1. Create Sale 1.3. Should be fail when create a sale with more than 50 token IDs" time="0.044" classname="1.3. Should be fail when create a sale with more than 50 token IDs">
+      <failure message="Expected transaction to be reverted with reason &apos;Limit length&apos;, but it reverted with reason &apos;Invalid token address&apos;" type="AssertionError"><![CDATA[AssertionError: Expected transaction to be reverted with reason 'Limit length', but it reverted with reason 'Invalid token address'
+    at processTicksAndRejections (internal/process/task_queues.js:95:5)
+    at runNextTicks (internal/process/task_queues.js:64:3)
+    at listOnTimeout (internal/timers.js:526:9)
+    at processTimers (internal/timers.js:500:7)
+    at async Context.<anonymous> (test/Sale.ts:161:7)]]></failure>
+    </testcase>
+    <testcase name="Sale 1. Create Sale 1.4. Should be fail when token IDs, prices and token payments are not same length" time="0.025" classname="1.4. Should be fail when token IDs, prices and token payments are not same length">
+      <failure message="Expected transaction to be reverted with reason &apos;Inconsistent length&apos;, but it reverted with reason &apos;Invalid token address&apos;" type="AssertionError"><![CDATA[AssertionError: Expected transaction to be reverted with reason 'Inconsistent length', but it reverted with reason 'Invalid token address'
+    at runMicrotasks (<anonymous>)
+    at processTicksAndRejections (internal/process/task_queues.js:95:5)
+    at runNextTicks (internal/process/task_queues.js:64:3)
+    at listOnTimeout (internal/timers.js:526:9)
+    at processTimers (internal/timers.js:500:7)
+    at async Context.<anonymous> (test/Sale.ts:177:7)]]></failure>
+    </testcase>
+    <testcase name="Sale 1. Create Sale 1.5. Should be fail when price of token is equal 0" time="0.034" classname="1.5. Should be fail when price of token is equal 0">
+      <failure message="Expected transaction to be reverted with reason &apos;Invalid price&apos;, but it reverted with reason &apos;Invalid token address&apos;" type="AssertionError"><![CDATA[AssertionError: Expected transaction to be reverted with reason 'Invalid price', but it reverted with reason 'Invalid token address'
+    at runMicrotasks (<anonymous>)
+    at processTicksAndRejections (internal/process/task_queues.js:95:5)
+    at runNextTicks (internal/process/task_queues.js:64:3)
+    at listOnTimeout (internal/timers.js:526:9)
+    at processTimers (internal/timers.js:500:7)
+    at async Context.<anonymous> (test/Sale.ts:188:7)]]></failure>
+    </testcase>
+    <testcase name="Sale 1. Create Sale 1.6. Should create successfully" time="0.027" classname="1.6. Should create successfully">
+      <failure message="VM Exception while processing transaction: reverted with reason string &apos;Invalid token address&apos;" type="Error"><![CDATA[Error: VM Exception while processing transaction: reverted with reason string 'Invalid token address'
+    at Sale.create (contracts/Sale.sol:93)
+    at <UnrecognizedContract>.<unknown> (0x70e0ba845a1a0f2da3359c97e0285013525ffc49)
+    at runMicrotasks (<anonymous>)
     at processTicksAndRejections (internal/process/task_queues.js:95:5)
     at runNextTicks (internal/process/task_queues.js:64:3)
     at listOnTimeout (internal/timers.js:526:9)
     at processTimers (internal/timers.js:500:7)
     at async HardhatNode._mineBlockWithPendingTxs (node_modules/hardhat/src/internal/hardhat-network/provider/node.ts:1815:23)
-    at async HardhatNode.mineBlock (node_modules/hardhat/src/internal/hardhat-network/provider/node.ts:504:16)
-    at async EthModule._sendTransactionAndReturnHash (node_modules/hardhat/src/internal/hardhat-network/provider/modules/eth.ts:1522:18)]]></failure>
+    at async HardhatNode.mineBlock (node_modules/hardhat/src/internal/hardhat-network/provider/node.ts:504:16)]]></failure>
     </testcase>
   </testsuite>
 </testsuites>

@@ -2,22 +2,28 @@
 pragma solidity 0.8.16;
 
 import "@openzeppelin/contracts-upgradeable/security/ReentrancyGuardUpgradeable.sol";
-import "@openzeppelin/contracts-upgradeable/token/ERC721/IERC721Upgradeable.sol";
+// import "@openzeppelin/contracts-upgradeable/token/ERC721/IERC721Upgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/utils/StringsUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/utils/CountersUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/utils/AddressUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/token/ERC20/IERC20Upgradeable.sol";
+import "@openzeppelin/contracts-upgradeable/utils/introspection/ERC165CheckerUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/token/ERC20/utils/SafeERC20Upgradeable.sol";
+import "./interfaces/IERC721.sol";
 import "./interfaces/ISale.sol";
 import "./Authorizable.sol";
 import "./ERC721.sol";
+import "hardhat/console.sol";
 
-contract Sale is Authorizable, ReentrancyGuardUpgradeable {
+contract Sale is Authorizable, ReentrancyGuardUpgradeable, IERC165Upgradeable {
 	using SafeERC20Upgradeable for IERC20Upgradeable;
 	using CountersUpgradeable for CountersUpgradeable.Counter;
 	using StringsUpgradeable for uint256;
 	using AddressUpgradeable for address payable;
 	using AddressUpgradeable for address;
+	using ERC165CheckerUpgradeable for address;
+
+	bytes4 public constant IID_IERC721 = type(IERC721).interfaceId;
 
 	/**
 	 * @notice Last ID of sale
@@ -32,7 +38,7 @@ contract Sale is Authorizable, ReentrancyGuardUpgradeable {
 	/**
 	 * @notice Mapping sale ID to token ID to token detail
 	 */
-	mapping(uint256 => mapping(uint256 => SaleToken)) tokens;
+	mapping(uint256 => mapping(uint256 => SaleToken)) public tokens;
 
 	/**
 	 * @notice Emit event when a sale is created
@@ -42,7 +48,7 @@ contract Sale is Authorizable, ReentrancyGuardUpgradeable {
 	/**
 	 * @notice Emit event when a sale is updated
 	 */
-	event Update(uint256 indexed saleId, SaleDetail[] sales);
+	event Updated(uint256 indexed saleId, SaleToken[] sales);
 
 	/**
 	 * @notice Emit event when contract is deployed
@@ -84,7 +90,7 @@ contract Sale is Authorizable, ReentrancyGuardUpgradeable {
 		address[] memory _tokenPayments,
 		uint256[] memory _prices
 	) external {
-		require(_token != address(0), "Invalid token address");
+		require(isERC721(_token), "Invalid token address");
 		require(_tokenIds.length > 0, "Empty token ids");
 		require(_tokenIds.length <= 50, "Limit length");
 		require(
@@ -130,6 +136,7 @@ contract Sale is Authorizable, ReentrancyGuardUpgradeable {
 			require(_tokens[i].price > 0, "Invalid price");
 			tokens[_saleId][_tokens[i].tokenId] = _tokens[i];
 		}
+		emit Updated(_saleId, _tokens);
 	}
 
 	function buy(
@@ -141,20 +148,31 @@ contract Sale is Authorizable, ReentrancyGuardUpgradeable {
 			tokens[_saleId][_tokenId].status == TokenStatus.AVAILABLE,
 			"Token is sold"
 		);
+
 		tokens[_saleId][_tokenId].status = TokenStatus.SOLD;
 		// Send money to token owner
 		address paymentToken = tokens[_saleId][_tokenId].paymentToken;
 		if (paymentToken == address(0)) {
+			require(
+				msg.value >= tokens[_saleId][_tokenId].price,
+				"Invalid price"
+			);
 			payable(IERC721Upgradeable(sales[_saleId].token).ownerOf(_tokenId))
 				.sendValue(tokens[_saleId][_tokenId].price);
 		} else {
 			IERC20Upgradeable(tokens[_saleId][_tokenId].paymentToken)
 				.safeTransferFrom(
-					address(this),
+					_msgSender(),
 					IERC721Upgradeable(sales[_saleId].token).ownerOf(_tokenId),
 					tokens[_saleId][_tokenId].price
 				);
 		}
+		emit Bought(
+			_msgSender(),
+			_saleId,
+			_tokenId,
+			tokens[_saleId][_tokenId].price
+		);
 	}
 
 	function cancel(uint256 _saleId) external onlyValidSale(_saleId) {
@@ -174,5 +192,15 @@ contract Sale is Authorizable, ReentrancyGuardUpgradeable {
 		uint256 _saleId
 	) external view returns (uint256[] memory) {
 		return sales[_saleId].tokenIds;
+	}
+
+	function isERC721(address _nftAddress) public view returns (bool) {
+		return _nftAddress.supportsInterface(IID_IERC721);
+	}
+
+	function supportsInterface(
+		bytes4 interfaceId
+	) public view virtual override returns (bool) {
+		return interfaceId == IID_IERC721;
 	}
 }

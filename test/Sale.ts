@@ -5,8 +5,8 @@ import { Contract } from "ethers";
 import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
 import { AddressZero, MaxUint256 } from "@ethersproject/constants";
 import { mintRoyaltyToken, mintToken } from "./utils/ERC721";
-import * as helpers from "@nomicfoundation/hardhat-network-helpers";
 import { SaleTokenStruct } from "../typechain-types/contracts/Sale";
+import * as helpers from "@nomicfoundation/hardhat-network-helpers";
 
 const ZERO_ADDRESS = AddressZero;
 const MAX_UINT256 = MaxUint256;
@@ -119,8 +119,8 @@ describe("Sale", () => {
     );
   });
 
-  describe("1. Create Sale", async () => {
-    it("1.1. Should be fail when token contract address is zero address", async () => {
+  describe.only("1. Create Sale", async () => {
+    it("1.1. Should be fail when token contract address is not ERC-721 token", async () => {
       const tokenIds = [1, 2, 3, 4];
       const prices = [price, price, tokenPrice, tokenPrice];
       const tokenPayments = [
@@ -217,7 +217,7 @@ describe("Sale", () => {
     });
   });
 
-  describe.only("2. Update", () => {
+  describe("2. Update", () => {
     beforeEach(async () => {
       const tokenIds = [1, 2, 3, 4];
       const prices = [price, price, tokenPrice, tokenPrice];
@@ -229,7 +229,7 @@ describe("Sale", () => {
       ];
       await sale
         .connect(manager)
-        .create(cashTestToken.address, tokenIds, tokenPayments, prices);
+        .create(erc721.address, tokenIds, tokenPayments, prices);
     });
 
     it("2.1. Should be fail when update nonexistent sale", async () => {
@@ -273,8 +273,100 @@ describe("Sale", () => {
       ).to.be.revertedWith("Limit length");
     });
 
-    it.only("2.6. Should be fail when update a sale with token is sold", async () => {
-      await sale.connect(users[1]).buy(1, 1);
+    it("2.6. Should be fail when update a sale with token is sold", async () => {
+      await sale.connect(users[1]).buy(1, 1, { value: price });
+      const newSaleToken: SaleTokenStruct[] = [
+        {
+          tokenId: 1,
+          paymentToken: ZERO_ADDRESS,
+          price: price.add(price),
+          status: TOKEN_STATUS.AVAILABLE,
+        },
+      ];
+      await expect(
+        sale.connect(manager).update(1, newSaleToken)
+      ).to.be.revertedWith("Token is sold");
+    });
+
+    it("2.7. Should be fail when update zero price to token", async () => {
+      const newSaleToken: SaleTokenStruct[] = [
+        {
+          tokenId: 1,
+          paymentToken: ZERO_ADDRESS,
+          price: 0,
+          status: TOKEN_STATUS.AVAILABLE,
+        },
+      ];
+      await expect(
+        sale.connect(manager).update(1, newSaleToken)
+      ).to.be.revertedWith("Invalid price");
+    });
+
+    it("2.8. Should update successfully", async () => {
+      const newSaleToken: SaleTokenStruct[] = [
+        {
+          tokenId: 1,
+          paymentToken: cashTestToken.address,
+          price: tokenPrice,
+          status: TOKEN_STATUS.AVAILABLE,
+        },
+      ];
+      await expect(sale.connect(manager).update(1, newSaleToken)).to.emit(
+        sale,
+        "Updated"
+      );
+      const saleToken = await sale.tokens(1, 1);
+      expect(saleToken.tokenId).to.be.equal(newSaleToken[0].tokenId);
+      expect(saleToken.paymentToken).to.be.equal(newSaleToken[0].paymentToken);
+      expect(saleToken.price).to.be.equal(newSaleToken[0].price);
+      expect(saleToken.status).to.be.equal(newSaleToken[0].status);
+    });
+  });
+
+  describe("3. Buy", () => {
+    beforeEach(async () => {
+      const tokenIds = [1, 2, 3, 4];
+      const prices = [price, price, tokenPrice, tokenPrice];
+      const tokenPayments = [
+        ZERO_ADDRESS,
+        ZERO_ADDRESS,
+        cashTestToken.address,
+        cashTestToken.address,
+      ];
+      await sale
+        .connect(manager)
+        .create(erc721.address, tokenIds, tokenPayments, prices);
+    });
+
+    it("3.1. Should be fail when sale was cancelled", async () => {
+      await sale.connect(manager).cancel(1);
+      await expect(sale.connect(manager).buy(1, 1)).to.be.revertedWith(
+        "Sale is cancelled"
+      );
+    });
+
+    it("3.2. Should be fail when token was sold", async () => {
+      await sale.connect(users[1]).buy(1, 1, { value: price });
+      await expect(
+        sale.connect(users[1]).buy(1, 1, { value: price })
+      ).to.be.revertedWith("Token is sold");
+    });
+
+    it("3.3. Should be fail when user doesn't pay enough money", async () => {
+      await expect(
+        sale.connect(users[1]).buy(1, 1, { value: 0 })
+      ).to.be.revertedWith("Invalid price");
+    });
+
+    it("3.4. Should buy successfully", async () => {
+      const ownerOfToken = await erc721.ownerOf(1);
+      await expect(sale.connect(users[1]).buy(1, 1, { value: price }))
+        .changeEtherBalances(
+          [users[1].address, ownerOfToken],
+          [price.mul(-1), price]
+        )
+        .to.emit(sale, "Bought")
+        .withArgs(users[1].address, 1, 1, price);
     });
   });
 });
