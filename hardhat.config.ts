@@ -79,7 +79,7 @@ const config: HardhatUserConfig = {
     strict: true,
   },
   gasReporter: {
-    enabled: true,
+    enabled: false,
     currency: "USD",
     token: "BNB",
     gasPrice: 30,

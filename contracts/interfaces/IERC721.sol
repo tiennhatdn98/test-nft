@@ -19,7 +19,11 @@ interface IERC721 is IERC721MetadataUpgradeable {
 
 	function setTokenURI(uint256 _tokenId, string memory _tokenURI) external;
 
-	function setTokenStatus(uint256 _tokenId, bool status) external;
+	function setType(
+		uint256 _tokenId,
+		TokenType _type,
+		bytes memory _signature
+	) external;
 
 	function withdraw(
 		address _paymentToken,
@@ -36,6 +40,19 @@ interface IERC721 is IERC721MetadataUpgradeable {
 	function transfer(address _from, address _to, uint256 _tokenId) external;
 
 	function buy(uint256 _tokenId) external;
+
+	function donate(uint256 _tokenId, address _to) external;
+}
+
+struct MintParams {
+	address to;
+	address owner;
+	address paymentToken;
+	uint256 price;
+	uint256 amount;
+	uint256 expiredYears;
+	string tokenURI;
+	TokenType typeToken;
 }
 
 struct TokenDetail {
@@ -51,4 +68,9 @@ struct TokenDetail {
 struct TokenPayment {
 	address paymentToken;
 	uint256 price;
+}
+
+enum TokenType {
+	Normal,
+	Furusato
 }

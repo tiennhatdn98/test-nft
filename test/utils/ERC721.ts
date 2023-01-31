@@ -1,25 +1,57 @@
-import { TokenDetailStruct } from "./../../typechain-types/contracts/ERC721";
-import { Contract } from "ethers";
+import { MintParamsStruct } from "./../../typechain-types/contracts/ERC721";
+import { BigNumber, Contract } from "ethers";
 import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
 import { AddressZero } from "@ethersproject/constants";
+import { TokenType } from "./constant";
 
 const ZERO_ADDRESS = AddressZero;
 
-const getSignature = async (
+const getSignatureMint = async (
   contract: Contract,
-  tokenInput: TokenDetailStruct,
+  params: MintParamsStruct,
   signer: SignerWithAddress
 ): Promise<string> => {
   try {
-    const hash = await contract.getMessageHash(
-      tokenInput.tokenId,
-      tokenInput.tokenURI,
-      tokenInput.paymentToken,
-      tokenInput.price,
-      tokenInput.amount,
-      tokenInput.owner,
-      tokenInput.status
+    const hash = await contract.getMessageHashMint(
+      params.to,
+      params.owner,
+      params.paymentToken,
+      params.tokenURI,
+      params.price,
+      params.amount,
+      params.expiredYears,
+      params.typeToken
     );
+    const signature = await signer.signMessage(ethers.utils.arrayify(hash));
+    return signature;
+  } catch (error: any) {
+    throw Error(error);
+  }
+};
+
+const getSignatureSetTokenURI = async (
+  contract: Contract,
+  tokenId: BigNumber,
+  tokenURI: string,
+  signer: SignerWithAddress
+): Promise<string> => {
+  try {
+    const hash = await contract.getMessageHashMint(tokenId, tokenURI);
+    const signature = await signer.signMessage(ethers.utils.arrayify(hash));
+    return signature;
+  } catch (error: any) {
+    throw Error(error);
+  }
+};
+
+const getSignatureSetType = async (
+  contract: Contract,
+  tokenId: BigNumber,
+  type: TokenType,
+  signer: SignerWithAddress
+): Promise<string> => {
+  try {
+    const hash = await contract.getMessageHashMint(tokenId, type);
     const signature = await signer.signMessage(ethers.utils.arrayify(hash));
     return signature;
   } catch (error: any) {
@@ -31,17 +63,17 @@ const mintToken = async (
   contract: Contract,
   caller: SignerWithAddress,
   to: string,
-  tokenInput: TokenDetailStruct,
+  params: MintParamsStruct,
   verifier: SignerWithAddress
 ): Promise<void> => {
   try {
-    const signature = await getSignature(contract, tokenInput, verifier);
+    const signature = await getSignatureMint(contract, params, verifier);
 
-    tokenInput.paymentToken === ZERO_ADDRESS
-      ? await contract.connect(caller).mint(to, tokenInput, signature, {
-          value: tokenInput.amount,
+    params.paymentToken === ZERO_ADDRESS
+      ? await contract.connect(caller).mint(to, params, signature, {
+          value: params.amount,
         })
-      : await contract.connect(caller).mint(to, tokenInput, signature);
+      : await contract.connect(caller).mint(to, params, signature);
   } catch (error: any) {
     throw Error(error);
   }
@@ -51,25 +83,31 @@ const mintRoyaltyToken = async (
   contract: Contract,
   caller: SignerWithAddress,
   to: string,
-  tokenInput: TokenDetailStruct,
+  params: MintParamsStruct,
   royaltyReceiver: string,
   verifier: SignerWithAddress
 ): Promise<void> => {
   try {
-    const signature = await getSignature(contract, tokenInput, verifier);
+    const signature = await getSignatureMint(contract, params, verifier);
 
-    tokenInput.paymentToken === ZERO_ADDRESS
+    params.paymentToken === ZERO_ADDRESS
       ? await contract
           .connect(caller)
-          .mintWithRoyalty(to, tokenInput, signature, royaltyReceiver, {
-            value: tokenInput.amount,
+          .mintWithRoyalty(to, params, signature, royaltyReceiver, {
+            value: params.amount,
           })
       : await contract
           .connect(caller)
-          .mintWithRoyalty(to, tokenInput, signature, royaltyReceiver);
+          .mintWithRoyalty(to, params, signature, royaltyReceiver);
   } catch (error: any) {
     throw Error(error);
   }
 };
 
-export { getSignature, mintToken, mintRoyaltyToken };
+export {
+  getSignatureMint,
+  getSignatureSetTokenURI,
+  getSignatureSetType,
+  mintToken,
+  mintRoyaltyToken,
+};
