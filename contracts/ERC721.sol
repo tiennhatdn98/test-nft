@@ -34,16 +34,6 @@ contract ERC721 is
 	CountersUpgradeable.Counter public lastId;
 
 	/**
-	 * @notice Mapping token ID => expired year of token
-	 */
-	mapping(uint256 => uint256) public expirationOf;
-
-	/**
-	 * @notice Mapping token ID => expiration of token
-	 */
-	mapping(uint256 => uint256) public expiredDateOf;
-
-	/**
 	 * @notice Mapping token ID => type of token
 	 */
 	mapping(uint256 => TokenType) public typeOf;
@@ -373,7 +363,6 @@ contract ERC721 is
 		require(_msgSender() != _to, "Transfer to yourself");
 		require(_exists(_tokenId), "Nonexistent token.");
 		require(typeOf[_tokenId] == TokenType.Normal, "Token is deactive");
-		expiredDateOf[_tokenId] = _getExpiredDate(expirationOf[_tokenId]);
 		safeTransferFrom(_msgSender(), _to, _tokenId);
 	}
 
@@ -475,27 +464,11 @@ contract ERC721 is
 		lastId.increment();
 		uint256 tokenId = lastId.current();
 		typeOf[tokenId] = _params.typeToken;
-		expirationOf[tokenId] = _params.expiration;
-		expiredDateOf[tokenId] = _getExpiredDate(_params.expiration);
 		tokenIdOf[_signature] = tokenId;
 		_tokenURIs[tokenId] = _params.tokenURI;
 		_tokenPayments[tokenId] = TokenPayment({
 			paymentToken: _params.paymentToken,
 			price: _params.price
 		});
-	}
-
-	/**
-	 *  @notice Calculate expired date after _yearPeriod year(s)
-	 *
-	 * 	@dev 		Private function
-	 *
-	 *          Name        	Meaning
-	 *  @param  _yearPeriod  	Number of expired years
-	 */
-	function _getExpiredDate(
-		uint256 _yearPeriod
-	) private view returns (uint256) {
-		return block.timestamp + _yearPeriod * 31_556_926;
 	}
 }

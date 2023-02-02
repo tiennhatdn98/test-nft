@@ -19,7 +19,6 @@ const getSignatureMint = async (
       params.royaltyReceiver,
       params.price,
       params.amount,
-      params.expiration,
       params.royaltyPercent,
       params.tokenURI,
       params.typeToken

@@ -34,7 +34,6 @@ describe("Verify Signature", () => {
         price: ethers.utils.parseEther("1"),
         amount: ethers.utils.parseEther("1"),
         royaltyPercent: 10,
-        expiration: 1,
         tokenURI: "ipfs://test",
         typeToken: TokenType.Normal,
       };
@@ -45,7 +44,6 @@ describe("Verify Signature", () => {
         data.royaltyReceiver,
         data.price,
         data.amount,
-        data.expiration,
         data.royaltyPercent,
         data.tokenURI,
         data.typeToken
@@ -66,7 +64,6 @@ describe("Verify Signature", () => {
         price: ethers.utils.parseEther("2"),
         amount: ethers.utils.parseEther("1"),
         royaltyPercent: 10,
-        expiration: 1,
         tokenURI: "ipfs://test",
         typeToken: TokenType.Normal,
       };
@@ -79,7 +76,6 @@ describe("Verify Signature", () => {
         price: ethers.utils.parseEther("1"),
         amount: ethers.utils.parseEther("1"),
         royaltyPercent: 10,
-        expiration: 1,
         tokenURI: "ipfs://test",
         typeToken: TokenType.Normal,
       };
@@ -91,7 +87,6 @@ describe("Verify Signature", () => {
         wrongData.royaltyReceiver,
         wrongData.price,
         wrongData.amount,
-        wrongData.expiration,
         wrongData.royaltyPercent,
         wrongData.tokenURI,
         wrongData.typeToken
@@ -112,7 +107,6 @@ describe("Verify Signature", () => {
         price: ethers.utils.parseEther("1"),
         amount: ethers.utils.parseEther("1"),
         royaltyPercent: 10,
-        expiration: 1,
         tokenURI: "ipfs://test",
         typeToken: TokenType.Normal,
       };
@@ -124,7 +118,6 @@ describe("Verify Signature", () => {
         data.royaltyReceiver,
         data.price,
         data.amount,
-        data.expiration,
         data.royaltyPercent,
         data.tokenURI,
         data.typeToken

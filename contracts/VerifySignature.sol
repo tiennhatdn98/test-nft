@@ -40,7 +40,6 @@ contract VerifySignature {
 		address _royaltyReceiver,
 		uint256 _price,
 		uint256 _amount,
-		uint256 _expiration,
 		uint96 _royaltyPercent,
 		string memory _tokenURI,
 		TokenType _type
@@ -54,7 +53,6 @@ contract VerifySignature {
 					_royaltyReceiver,
 					_price,
 					_amount,
-					_expiration,
 					_royaltyPercent,
 					_tokenURI,
 					_type
@@ -125,7 +123,6 @@ contract VerifySignature {
 			_params.royaltyReceiver,
 			_params.price,
 			_params.amount,
-			_params.expiration,
 			_params.royaltyPercent,
 			_params.tokenURI,
 			_params.typeToken

@@ -38,7 +38,6 @@ struct MintParams {
 	address paymentToken; // Payment token address
 	uint256 price; // Price of token
 	uint256 amount; // Amount that user want to pay token
-	uint256 expiration; // Expired years of token
 	uint96 royaltyPercent; // Royalty percent
 	string tokenURI; // Token URI
 	TokenType typeToken; // Type of token
