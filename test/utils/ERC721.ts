@@ -36,7 +36,7 @@ const getSignatureSetTokenURI = async (
   signer: SignerWithAddress
 ): Promise<string> => {
   try {
-    const hash = await contract.getMessageHashMint(tokenId, tokenURI);
+    const hash = await contract.getMessageHashSetTokenURI(tokenId, tokenURI);
     const signature = await signer.signMessage(ethers.utils.arrayify(hash));
     return signature;
   } catch (error: any) {
@@ -51,7 +51,7 @@ const getSignatureSetType = async (
   signer: SignerWithAddress
 ): Promise<string> => {
   try {
-    const hash = await contract.getMessageHashMint(tokenId, type);
+    const hash = await contract.getMessageHashSetType(tokenId, type);
     const signature = await signer.signMessage(ethers.utils.arrayify(hash));
     return signature;
   } catch (error: any) {
@@ -79,35 +79,9 @@ const mintToken = async (
   }
 };
 
-const mintRoyaltyToken = async (
-  contract: Contract,
-  caller: SignerWithAddress,
-  to: string,
-  params: MintParamsStruct,
-  royaltyReceiver: string,
-  verifier: SignerWithAddress
-): Promise<void> => {
-  try {
-    const signature = await getSignatureMint(contract, params, verifier);
-
-    params.paymentToken === ZERO_ADDRESS
-      ? await contract
-          .connect(caller)
-          .mintWithRoyalty(to, params, signature, royaltyReceiver, {
-            value: params.amount,
-          })
-      : await contract
-          .connect(caller)
-          .mintWithRoyalty(to, params, signature, royaltyReceiver);
-  } catch (error: any) {
-    throw Error(error);
-  }
-};
-
 export {
   getSignatureMint,
   getSignatureSetTokenURI,
   getSignatureSetType,
   mintToken,
-  mintRoyaltyToken,
 };

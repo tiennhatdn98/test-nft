@@ -93,14 +93,6 @@ contract ERC721 is
 	event SetType(uint256 indexed tokenId, TokenType typeToken);
 
 	/**
-	 * @notice Emit event when set status of a token
-	 */
-	event SetExpiration(
-		uint256 indexed oldExpiration,
-		uint256 indexed newExpiration
-	);
-
-	/**
 	 * @notice Emit event when owner withdraws
 	 */
 	event Withdrawn(
@@ -110,18 +102,13 @@ contract ERC721 is
 	);
 
 	/**
-	 * @notice Emit event when someone claims
-	 */
-	event Claimed(
-		address indexed paymentToken,
-		address indexed to,
-		uint256 amount
-	);
-
-	/**
 	 * @notice Emit event when someone buy token
 	 */
-	event Bought(address indexed buyer, uint256 indexed tokenId);
+	event Bought(
+		address indexed owner,
+		address indexed buyer,
+		uint256 indexed tokenId
+	);
 
 	/**
 	 * @notice Emit event when donate a token
@@ -213,7 +200,7 @@ contract ERC721 is
 	 *  @param  _params  	Token input
 	 *  @param  _signature    Signature of transaction
 	 */
-	function _isValidParams(
+	function _checkValidParams(
 		address _to,
 		MintParams memory _params,
 		bytes memory _signature
@@ -331,62 +318,13 @@ contract ERC721 is
 	 */
 	function mint(
 		address _to,
-		MintParams memory _params,
-		bytes memory _signature
+		MintParams calldata _params,
+		bytes calldata _signature
 	) external payable nonReentrant {
-		_isValidParams(_to, _params, _signature);
+		_checkValidParams(_to, _params, _signature);
 		_beforeMint(_params, _signature);
 		_safeMint(_to, lastId.current());
-		_handleTransfer(
-			_msgSender(),
-			_params.owner,
-			_params.paymentToken,
-			_params.price
-		);
-		if (_params.paymentToken != address(0)) {
-			_handleTransfer(
-				_msgSender(),
-				address(this),
-				_params.paymentToken,
-				_params.amount - _params.price
-			);
-		}
-	}
-
-	/**
-	 *  @notice Mint a token to an address with royalty
-	 *
-	 *  @dev    Only owner or controller can call this function
-	 *
-	 *          Name                        Meaning
-	 *  @param  _to                        	Recipient address
-	 *  @param  _params.to         					Recipient address
-	 *  @param  _params.owner        				Local government address
-	 *  @param  _params.paymentToken    		Payment token address (Zero address if user pay native token)
-	 *  @param  _params.price           		Amount of money that need to mint token
-	 *  @param  _params.amount          		Amount of money that user pays
-	 *  @param  _params.tokenURI        		Token URI
-	 *  @param  _params.expiredYears        Number of expired years
-	 *  @param  _params.type         				Type of token
-	 *  @param  _signature                  Signature of transaction
-	 *  @param  _royaltyReceiver            Royalty receiver address
-	 *
-	 *  Emit event {Transfer(address(0), _to, tokenId)}
-	 */
-	function mintWithRoyalty(
-		address _to,
-		MintParams memory _params,
-		bytes memory _signature,
-		address _royaltyReceiver
-	) external payable nonReentrant {
-		_isValidParams(_to, _params, _signature);
-		require(
-			_royaltyReceiver != address(0) && !_royaltyReceiver.isContract(),
-			"Invalid royalty receiver"
-		);
-		_beforeMint(_params, _signature);
-		_safeMint(_to, lastId.current());
-		_setTokenRoyalty(lastId.current(), _royaltyReceiver, royaltyPercentage);
+		_setTokenRoyalty(lastId.current(), _params.owner, royaltyPercentage);
 		_handleTransfer(
 			_msgSender(),
 			_params.owner,
@@ -460,7 +398,7 @@ contract ERC721 is
 	function buy(uint256 _tokenId) external payable nonReentrant {
 		require(_exists(_tokenId), "Nonexistent token.");
 		require(ownerOf(_tokenId) != _msgSender(), "Already owned");
-		require(typeOf[_tokenId] == TokenType.Normal, "Can buy token");
+		require(typeOf[_tokenId] == TokenType.Normal, "Token is not normal");
 
 		TokenPayment memory token = _tokenPayments[_tokenId];
 		(address royaltyReceiver, uint256 royaltyFraction) = royaltyInfo(
@@ -474,16 +412,14 @@ contract ERC721 is
 			token.paymentToken,
 			token.price - royaltyFraction
 		);
-		if (royaltyReceiver != address(0)) {
-			_handleTransfer(
-				_msgSender(),
-				royaltyReceiver,
-				token.paymentToken,
-				royaltyFraction
-			);
-		}
+		_handleTransfer(
+			_msgSender(),
+			royaltyReceiver,
+			token.paymentToken,
+			royaltyFraction
+		);
 		_safeTransfer(ownerOf(_tokenId), _msgSender(), _tokenId, "");
-		emit Bought(_msgSender(), _tokenId);
+		emit Bought(ownerOf(_tokenId), _msgSender(), _tokenId);
 	}
 
 	/**
@@ -499,7 +435,7 @@ contract ERC721 is
 	 */
 	function donate(uint256 _tokenId, address _to) external {
 		require(_exists(_tokenId), "Nonexistent token");
-		require(_msgSender() == ownerOf(_tokenId), "Not owner token");
+		require(_msgSender() == ownerOf(_tokenId), "Not token owner");
 		require(typeOf[_tokenId] == TokenType.Furusato, "Not Furusato token");
 		safeTransferFrom(_msgSender(), _to, _tokenId);
 		emit Donated(_msgSender(), _to, _tokenId);
@@ -541,8 +477,8 @@ contract ERC721 is
 	 *  @param  _signature    Mint token caller
 	 */
 	function _beforeMint(
-		MintParams memory _params,
-		bytes memory _signature
+		MintParams calldata _params,
+		bytes calldata _signature
 	) private {
 		lastId.increment();
 		uint256 tokenId = lastId.current();
@@ -568,6 +504,6 @@ contract ERC721 is
 	function _getExpiredDate(
 		uint256 _yearPeriod
 	) private view returns (uint256) {
-		return block.timestamp + _yearPeriod * 60 * 60 * 24 * 365;
+		return block.timestamp + _yearPeriod * 31_556_926;
 	}
 }

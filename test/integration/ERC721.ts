@@ -2,18 +2,19 @@ import { upgrades, ethers } from "hardhat";
 import { expect } from "chai";
 import { Contract } from "ethers";
 import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
-import { TokenDetailStruct } from "../../typechain-types/contracts/ERC721";
-import { AddressZero, MaxUint256 } from "@ethersproject/constants";
-import { getSignature } from "../utils/ERC721";
 import * as helpers from "@nomicfoundation/hardhat-network-helpers";
+import { MintParamsStruct } from "./../../typechain-types/contracts/ERC721";
+import { getSignatureMint } from "../utils/ERC721";
+import { TokenType } from "../utils/constant";
+import {
+  ZERO_ADDRESS,
+  MAX_UINT256,
+  TOKEN_NAME,
+  SYMBOL,
+  DECIMALS,
+  ROYALTY_PERCENTAGE,
+} from "../utils/constant";
 
-const ZERO_ADDRESS = AddressZero;
-const MAX_UINT256 = MaxUint256;
-const TOKEN_NAME = "Token";
-const SYMBOL = "TKN";
-const DECIMALS = 6;
-const YEAR_TO_SECONDS = 31_556_926;
-const ROYALTY_PERCENTAGE = 10;
 const royaltyPercentage = ROYALTY_PERCENTAGE * 100;
 
 describe("ERC721 Integration", () => {
@@ -24,19 +25,19 @@ describe("ERC721 Integration", () => {
   let verifier: SignerWithAddress;
   let royaltyReceiver: SignerWithAddress;
   let government: SignerWithAddress;
-  let artist: SignerWithAddress;
   let users: SignerWithAddress[];
-  let tokenInput: TokenDetailStruct;
+  let params: MintParamsStruct;
 
-  const resetTokenInput = (): void => {
-    tokenInput = {
-      tokenId: 0,
-      tokenURI: "",
+  const initParams = () => {
+    params = {
+      to: users[0].address,
+      owner: government.address,
       paymentToken: ZERO_ADDRESS,
-      amount: 0,
-      price: 0,
-      owner: ZERO_ADDRESS,
-      status: true,
+      price: ethers.utils.parseEther("1"),
+      amount: ethers.utils.parseEther("1"),
+      expiredYears: 1,
+      tokenURI: "ipfs://test",
+      typeToken: TokenType.Normal,
     };
   };
 
@@ -53,7 +54,6 @@ describe("ERC721 Integration", () => {
       owner.address,
       TOKEN_NAME,
       SYMBOL,
-      YEAR_TO_SECONDS,
       royaltyPercentage,
     ]);
     await erc721.deployed();
@@ -76,27 +76,23 @@ describe("ERC721 Integration", () => {
       .connect(royaltyReceiver)
       .approve(erc721.address, MAX_UINT256);
 
-    resetTokenInput();
+    initParams();
   });
 
-  it("1.1. Mint token by paying native token without royalty => Transfer token => Owner of contract withdraws", async () => {
+  it("1.1. Mint token by paying native token => Transfer token => Owner of contract withdraws", async () => {
     // Mint token
     const price = ethers.utils.parseEther("1");
     const amount = ethers.utils.parseEther("2");
     const balanceOfOwner = await ethers.provider.getBalance(government.address);
-    tokenInput.tokenURI = "ipfs://1.json";
-    tokenInput.price = price;
-    tokenInput.amount = amount;
-    tokenInput.owner = government.address;
-    const signature = await getSignature(erc721, tokenInput, verifier);
-    await erc721
-      .connect(users[0])
-      .mint(users[0].address, tokenInput, signature, {
-        value: amount,
-      });
+    params.price = price;
+    params.amount = amount;
+    const signature = await getSignatureMint(erc721, params, verifier);
+    await erc721.connect(users[0]).mint(users[0].address, params, signature, {
+      value: amount,
+    });
 
     expect(await ethers.provider.getBalance(government.address)).to.be.equal(
-      balanceOfOwner.add(tokenInput.price)
+      balanceOfOwner.add(params.price)
     );
 
     // Transfer token
@@ -122,34 +118,25 @@ describe("ERC721 Integration", () => {
     );
   });
 
-  it("1.2. Mint token by paying test cash token with royalty => Transfer token => Owner of contract withdraws", async () => {
-    // Mint token with royalty
+  it("1.2. Mint token by paying test cash token => Transfer token => Owner of contract withdraws", async () => {
+    // Mint token
     const price = ethers.utils.parseUnits("1", DECIMALS);
     const amount = ethers.utils.parseUnits("2", DECIMALS);
     const balanceOfOwner = await cashTestToken.balanceOf(government.address);
-    tokenInput.tokenURI = "ipfs://1.json";
-    tokenInput.paymentToken = cashTestToken.address;
-    tokenInput.price = price;
-    tokenInput.amount = amount;
-    tokenInput.owner = government.address;
-    const signature = await getSignature(erc721, tokenInput, verifier);
-    await erc721
-      .connect(users[0])
-      .mintWithRoyalty(
-        users[0].address,
-        tokenInput,
-        signature,
-        royaltyReceiver.address
-      );
+    params.paymentToken = cashTestToken.address;
+    params.price = price;
+    params.amount = amount;
+    const signature = await getSignatureMint(erc721, params, verifier);
+    await erc721.connect(users[0]).mint(users[0].address, params, signature);
 
     expect(await cashTestToken.balanceOf(government.address)).to.be.equal(
-      balanceOfOwner.add(tokenInput.price)
+      balanceOfOwner.add(params.price)
     );
 
     let tokenId = await erc721.lastId();
     const [_, royaltyFraction] = await erc721.royaltyInfo(
       tokenId,
-      tokenInput.price
+      params.price
     );
 
     expect(await erc721.ownerOf(tokenId)).to.be.equal(users[0].address);
@@ -167,7 +154,7 @@ describe("ERC721 Integration", () => {
           erc721.address,
           users[1].address,
           users[0].address,
-          royaltyReceiver.address,
+          government.address,
         ],
         [royaltyFraction.mul(-1), 0, 0, royaltyFraction]
       )
@@ -176,7 +163,7 @@ describe("ERC721 Integration", () => {
           erc721.address,
           users[1].address,
           users[0].address,
-          royaltyReceiver.address,
+          government.address,
         ],
         [0, 0, 0, 0]
       );
@@ -197,25 +184,21 @@ describe("ERC721 Integration", () => {
       .changeEtherBalances([erc721.address, owner.address], [0, 0]);
   });
 
-  it("1.3. A user buys a token with royalty => Someone buys this token => Money will be transfered properly", async () => {
-    // Mint token with royalty
+  it("1.3. A user buys a token => Someone buys this token => Money will be transfered properly", async () => {
+    // Mint token
     const balanceOfOwner = await cashTestToken.balanceOf(government.address);
-    tokenInput.tokenURI = "ipfs://URI";
-    tokenInput.paymentToken = cashTestToken.address;
-    tokenInput.price = ethers.utils.parseUnits("1", DECIMALS);
-    tokenInput.amount = ethers.utils.parseUnits("2", DECIMALS);
-    tokenInput.owner = government.address;
-    const signature = await getSignature(erc721, tokenInput, verifier);
-    await erc721
-      .connect(users[0])
-      .mintWithRoyalty(users[0].address, tokenInput, signature, artist.address);
+    params.paymentToken = cashTestToken.address;
+    params.price = ethers.utils.parseUnits("1", DECIMALS);
+    params.amount = ethers.utils.parseUnits("2", DECIMALS);
+    const signature = await getSignatureMint(erc721, params, verifier);
+    await erc721.connect(users[0]).mint(users[0].address, params, signature);
     expect(await cashTestToken.balanceOf(government.address)).to.be.equal(
-      balanceOfOwner.add(tokenInput.price)
+      balanceOfOwner.add(params.price)
     );
 
     const [royaltyAddress, royaltyFraction] = await erc721.royaltyInfo(
       1,
-      tokenInput.price
+      params.price
     );
 
     // User1 buys token
@@ -229,15 +212,15 @@ describe("ERC721 Integration", () => {
         cashTestToken,
         [users[0].address, users[1].address, royaltyAddress],
         [
-          tokenInput.price.sub(royaltyFraction),
-          tokenInput.price.mul(-1),
+          params.price.sub(royaltyFraction),
+          params.price.mul(-1),
           royaltyFraction,
         ]
       );
-    expect(artist.address).to.be.equal(royaltyAddress);
+    expect(government.address).to.be.equal(royaltyAddress);
 
     // Owner withdraws
-    const withdrawableAmount = tokenInput.amount.sub(tokenInput.price);
+    const withdrawableAmount = params.amount.sub(params.price);
     await expect(
       erc721.withdraw(cashTestToken.address, owner.address, withdrawableAmount)
     ).changeTokenBalances(
