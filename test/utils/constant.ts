@@ -12,4 +12,4 @@ export const SYMBOL = "TKN";
 export const DECIMALS = 6;
 export const YEAR_TO_SECONDS = 31_556_926;
 export const NONEXISTENT_TOKEN_ID = 9999;
-export const ROYALTY_PERCENTAGE = 10;
+export const ROYALTY_PERCENT = 10;

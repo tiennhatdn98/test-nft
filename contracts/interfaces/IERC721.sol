@@ -6,15 +6,8 @@ import "@openzeppelin/contracts-upgradeable/token/ERC721/extensions/IERC721Metad
 interface IERC721 is IERC721MetadataUpgradeable {
 	function mint(
 		address _to,
-		TokenDetail memory _tokenInput,
-		bytes memory _signature
-	) external returns (uint256 tokenId);
-
-	function mintWithRoyalty(
-		address _to,
-		TokenDetail memory _tokenInput,
-		bytes memory _signature,
-		address _royaltyReceiver
+		MintParams calldata _params,
+		bytes calldata _signature
 	) external returns (uint256 tokenId);
 
 	function setTokenURI(uint256 _tokenId, string memory _tokenURI) external;
@@ -31,12 +24,6 @@ interface IERC721 is IERC721MetadataUpgradeable {
 		uint256 _amount
 	) external;
 
-	function claim(
-		address _paymentToken,
-		address _to,
-		uint256 _amount
-	) external;
-
 	function transfer(address _from, address _to, uint256 _tokenId) external;
 
 	function buy(uint256 _tokenId) external;
@@ -45,29 +32,21 @@ interface IERC721 is IERC721MetadataUpgradeable {
 }
 
 struct MintParams {
-	address to;
-	address owner;
-	address paymentToken;
-	uint256 price;
-	uint256 amount;
-	uint256 expiredYears;
-	string tokenURI;
-	TokenType typeToken;
-}
-
-struct TokenDetail {
-	uint256 tokenId;
-	uint256 amount; // Amount of money that user pay
-	uint256 price; // Amount of money that need to mint
-	address paymentToken; // Zero address when paying native token
-	address owner;
-	string tokenURI;
-	bool status; // true is ACTIVE, false is DEACTIVE
+	address to; // Recipient address
+	address owner; // Local government address
+	address royaltyReceiver; // Royalty receiver address
+	address paymentToken; // Payment token address
+	uint256 price; // Price of token
+	uint256 amount; // Amount that user want to pay token
+	uint256 expiration; // Expired years of token
+	uint96 royaltyPercent; // Royalty percent
+	string tokenURI; // Token URI
+	TokenType typeToken; // Type of token
 }
 
 struct TokenPayment {
-	address paymentToken;
-	uint256 price;
+	address paymentToken; // Payment token address
+	uint256 price; // Price of token
 }
 
 enum TokenType {

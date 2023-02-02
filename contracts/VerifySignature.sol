@@ -32,37 +32,17 @@ contract VerifySignature {
 
     hash = "0xcf36ac4f97dc10d91fc2cbb20d718e94a8cbfe0f82eaedc6a4aa38946fb797cd"
     */
-	// function getMessageHash(
-	// 	uint256 _tokenId,
-	// 	string memory _tokenURI,
-	// 	address _paymentToken,
-	// 	uint256 _price,
-	// 	uint256 _amount,
-	// 	address _owner,
-	// 	bool _status
-	// ) public pure returns (bytes32) {
-	// 	return
-	// 		keccak256(
-	// 			abi.encodePacked(
-	// 				_tokenId,
-	// 				_tokenURI,
-	// 				_paymentToken,
-	// 				_price,
-	// 				_amount,
-	// 				_owner,
-	// 				_status
-	// 			)
-	// 		);
-	// }
 
 	function getMessageHashMint(
 		address _to,
 		address _owner,
 		address _paymentToken,
-		string memory _tokenURI,
+		address _royaltyReceiver,
 		uint256 _price,
 		uint256 _amount,
-		uint256 _expiredYears,
+		uint256 _expiration,
+		uint96 _royaltyPercent,
+		string memory _tokenURI,
 		TokenType _type
 	) public pure returns (bytes32) {
 		return
@@ -71,10 +51,12 @@ contract VerifySignature {
 					_to,
 					_owner,
 					_paymentToken,
-					_tokenURI,
+					_royaltyReceiver,
 					_price,
 					_amount,
-					_expiredYears,
+					_expiration,
+					_royaltyPercent,
+					_tokenURI,
 					_type
 				)
 			);
@@ -130,24 +112,6 @@ contract VerifySignature {
     signature =
         0x993dab3dd91f5c6dc28e17439be475478f5635c92a56e17e82349d3fb2f166196f466c0b4e0c146f285204f0dcb13e5ae67bc33f4b888ec32dfe0a063e8f3f781b
     */
-	// function verify(
-	// 	address _signer,
-	// 	TokenDetail memory _tokenInput,
-	// 	bytes memory _signature
-	// ) public pure returns (bool) {
-	// 	bytes32 messageHash = getMessageHash(
-	// 		_tokenInput.tokenId,
-	// 		_tokenInput.tokenURI,
-	// 		_tokenInput.paymentToken,
-	// 		_tokenInput.price,
-	// 		_tokenInput.amount,
-	// 		_tokenInput.owner,
-	// 		_tokenInput.status
-	// 	);
-	// 	bytes32 ethSignedMessageHash = getEthSignedMessageHash(messageHash);
-
-	// 	return recoverSigner(ethSignedMessageHash, _signature) == _signer;
-	// }
 
 	function verifyMint(
 		address _signer,
@@ -158,10 +122,12 @@ contract VerifySignature {
 			_params.to,
 			_params.owner,
 			_params.paymentToken,
-			_params.tokenURI,
+			_params.royaltyReceiver,
 			_params.price,
 			_params.amount,
-			_params.expiredYears,
+			_params.expiration,
+			_params.royaltyPercent,
+			_params.tokenURI,
 			_params.typeToken
 		);
 		bytes32 ethSignedMessageHash = getEthSignedMessageHash(messageHash);

@@ -34,14 +34,9 @@ contract ERC721 is
 	CountersUpgradeable.Counter public lastId;
 
 	/**
-	 * @notice Default royalty info
-	 */
-	uint96 public royaltyPercentage;
-
-	/**
 	 * @notice Mapping token ID => expired year of token
 	 */
-	mapping(uint256 => uint256) public yearPeriodOf;
+	mapping(uint256 => uint256) public expirationOf;
 
 	/**
 	 * @notice Mapping token ID => expiration of token
@@ -71,12 +66,7 @@ contract ERC721 is
 	/**
 	 * @notice Emit event when contract is deployed
 	 */
-	event Deployed(
-		address owner,
-		string tokenName,
-		string symbol,
-		uint256 royaltyPercentage
-	);
+	event Deployed(address owner, string tokenName, string symbol);
 
 	/**
 	 * @notice Emit event when set token URI
@@ -128,24 +118,20 @@ contract ERC721 is
 	 *  @param  _owner      					Contract owner address
 	 *  @param  _tokenName  					Token name
 	 *  @param  _symbol     					Token symbol
-	 *  @param  _royaltyPercentage   	Royalty percentage
 	 *
 	 *  Emit event {Deployed}
 	 */
 	function initialize(
 		address _owner,
 		string memory _tokenName,
-		string memory _symbol,
-		uint96 _royaltyPercentage
+		string memory _symbol
 	) public initializer {
 		ReentrancyGuardUpgradeable.__ReentrancyGuard_init();
 		__ERC721_init(_tokenName, _symbol);
 		__Ownable_init();
 		transferOwnership(_owner);
 
-		royaltyPercentage = _royaltyPercentage;
-
-		emit Deployed(_owner, _tokenName, _symbol, _royaltyPercentage);
+		emit Deployed(_owner, _tokenName, _symbol);
 	}
 
 	/**
@@ -306,12 +292,14 @@ contract ERC721 is
 	 *  @param  _to                        	Recipient address
 	 *  @param  _params.to         					Recipient address
 	 *  @param  _params.owner        				Local government address
+	 *  @param  _params.royaltyReceiver     Royalty receiver address
 	 *  @param  _params.paymentToken    		Payment token address (Zero address if user pay native token)
 	 *  @param  _params.price           		Amount of money that need to mint token
 	 *  @param  _params.amount          		Amount of money that user pays
+	 *  @param  _params.expiration        	Expired years of token
+	 *  @param  _params.royaltyPercent      Royalty percent
 	 *  @param  _params.tokenURI        		Token URI
-	 *  @param  _params.expiredYears        Number of expired years
-	 *  @param  _params.type         				Type of token
+	 *  @param  _params.typeToken         	Type of token
 	 *  @param  _signature                  Signature of transaction
 	 *
 	 *  Emit event {Transfer(address(0), _to, tokenId)}
@@ -324,7 +312,11 @@ contract ERC721 is
 		_checkValidParams(_to, _params, _signature);
 		_beforeMint(_params, _signature);
 		_safeMint(_to, lastId.current());
-		_setTokenRoyalty(lastId.current(), _params.owner, royaltyPercentage);
+		_setTokenRoyalty(
+			lastId.current(),
+			_params.royaltyReceiver,
+			_params.royaltyPercent
+		);
 		_handleTransfer(
 			_msgSender(),
 			_params.owner,
@@ -381,7 +373,7 @@ contract ERC721 is
 		require(_msgSender() != _to, "Transfer to yourself");
 		require(_exists(_tokenId), "Nonexistent token.");
 		require(typeOf[_tokenId] == TokenType.Normal, "Token is deactive");
-		expiredDateOf[_tokenId] = _getExpiredDate(yearPeriodOf[_tokenId]);
+		expiredDateOf[_tokenId] = _getExpiredDate(expirationOf[_tokenId]);
 		safeTransferFrom(_msgSender(), _to, _tokenId);
 	}
 
@@ -483,8 +475,8 @@ contract ERC721 is
 		lastId.increment();
 		uint256 tokenId = lastId.current();
 		typeOf[tokenId] = _params.typeToken;
-		yearPeriodOf[tokenId] = _params.expiredYears;
-		expiredDateOf[tokenId] = _getExpiredDate(_params.expiredYears);
+		expirationOf[tokenId] = _params.expiration;
+		expiredDateOf[tokenId] = _getExpiredDate(_params.expiration);
 		tokenIdOf[_signature] = tokenId;
 		_tokenURIs[tokenId] = _params.tokenURI;
 		_tokenPayments[tokenId] = TokenPayment({

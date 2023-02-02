@@ -12,10 +12,10 @@ import {
   TOKEN_NAME,
   SYMBOL,
   DECIMALS,
-  ROYALTY_PERCENTAGE,
+  ROYALTY_PERCENT,
 } from "../utils/constant";
 
-const royaltyPercentage = ROYALTY_PERCENTAGE * 100;
+const royaltyPercent = ROYALTY_PERCENT * 100;
 
 describe("ERC721 Integration", () => {
   let erc721: Contract;
@@ -25,6 +25,7 @@ describe("ERC721 Integration", () => {
   let verifier: SignerWithAddress;
   let royaltyReceiver: SignerWithAddress;
   let government: SignerWithAddress;
+  let artist: SignerWithAddress;
   let users: SignerWithAddress[];
   let params: MintParamsStruct;
 
@@ -33,9 +34,11 @@ describe("ERC721 Integration", () => {
       to: users[0].address,
       owner: government.address,
       paymentToken: ZERO_ADDRESS,
+      royaltyReceiver: artist.address,
       price: ethers.utils.parseEther("1"),
       amount: ethers.utils.parseEther("1"),
-      expiredYears: 1,
+      royaltyPercent,
+      expiration: 1,
       tokenURI: "ipfs://test",
       typeToken: TokenType.Normal,
     };
@@ -54,7 +57,6 @@ describe("ERC721 Integration", () => {
       owner.address,
       TOKEN_NAME,
       SYMBOL,
-      royaltyPercentage,
     ]);
     await erc721.deployed();
 
@@ -217,7 +219,7 @@ describe("ERC721 Integration", () => {
           royaltyFraction,
         ]
       );
-    expect(government.address).to.be.equal(royaltyAddress);
+    expect(royaltyAddress).to.be.equal(artist.address);
 
     // Owner withdraws
     const withdrawableAmount = params.amount.sub(params.price);

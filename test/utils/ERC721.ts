@@ -16,10 +16,12 @@ const getSignatureMint = async (
       params.to,
       params.owner,
       params.paymentToken,
-      params.tokenURI,
+      params.royaltyReceiver,
       params.price,
       params.amount,
-      params.expiredYears,
+      params.expiration,
+      params.royaltyPercent,
+      params.tokenURI,
       params.typeToken
     );
     const signature = await signer.signMessage(ethers.utils.arrayify(hash));

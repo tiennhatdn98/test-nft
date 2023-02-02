@@ -20,12 +20,12 @@ import {
   DECIMALS,
   YEAR_TO_SECONDS,
   NONEXISTENT_TOKEN_ID,
-  ROYALTY_PERCENTAGE,
+  ROYALTY_PERCENT,
 } from "./utils/constant";
 
 const sampleSignature =
   "0xe061bcd7ddefb1dbef4bb6e16bc0fc8f5c1edebbd3a94c3e7bfafae9966fae5936458df7c8cc4bf664641978b79d915c95db6907057f2bfe9610a323a2dad7281c";
-const royaltyPercentage = ROYALTY_PERCENTAGE * 100;
+const royaltyPercent = ROYALTY_PERCENT * 100;
 
 describe("ERC721", () => {
   let erc721: Contract;
@@ -34,6 +34,7 @@ describe("ERC721", () => {
   let admin: SignerWithAddress;
   let verifier: SignerWithAddress;
   let government: SignerWithAddress;
+  let artist: SignerWithAddress;
   let poor: SignerWithAddress;
   let users: SignerWithAddress[];
   let tokenId: BigNumber;
@@ -44,9 +45,11 @@ describe("ERC721", () => {
       to: users[0].address,
       owner: government.address,
       paymentToken: ZERO_ADDRESS,
+      royaltyReceiver: artist.address,
       price: ethers.utils.parseEther("1"),
       amount: ethers.utils.parseEther("1"),
-      expiredYears: 1,
+      royaltyPercent,
+      expiration: 1,
       tokenURI: "ipfs://test",
       typeToken: TokenType.Normal,
     };
@@ -55,7 +58,7 @@ describe("ERC721", () => {
   beforeEach(async () => {
     const ERC721 = await ethers.getContractFactory("ERC721");
     const CashTestToken = await ethers.getContractFactory("CashTestToken");
-    [owner, admin, verifier, government, poor, ...users] =
+    [owner, admin, verifier, government, artist, poor, ...users] =
       await ethers.getSigners();
 
     await helpers.setBalance(poor.address, 0);
@@ -64,7 +67,6 @@ describe("ERC721", () => {
       owner.address,
       TOKEN_NAME,
       SYMBOL,
-      royaltyPercentage,
     ]);
     await erc721.deployed();
 
@@ -90,7 +92,6 @@ describe("ERC721", () => {
       expect(await erc721.name()).to.be.equal(TOKEN_NAME);
       expect(await erc721.symbol()).to.be.equal(SYMBOL);
       expect(await erc721.lastId()).to.be.equal(0);
-      expect(await erc721.royaltyPercentage()).to.be.equal(royaltyPercentage);
     });
   });
 
@@ -210,11 +211,19 @@ describe("ERC721", () => {
         users[0].address
       );
       expect(await erc721.typeOf(currentTokenId)).to.be.equal(TokenType.Normal);
-      const yearPeriod = await erc721.yearPeriodOf(currentTokenId);
+      const yearPeriod = await erc721.expirationOf(currentTokenId);
       expect(await erc721.expiredDateOf(currentTokenId)).to.be.equal(
         currentBlockTimestamp.add(yearPeriod.mul(YEAR_TO_SECONDS))
       );
       expect(await erc721.tokenIdOf(signature)).to.be.equal(currentTokenId);
+      const [royaltyReceiver, royaltyFraction] = await erc721.royaltyInfo(
+        currentTokenId,
+        params.price
+      );
+      expect(royaltyReceiver).to.be.equal(artist.address);
+      expect(royaltyFraction).to.be.equal(
+        params.price.mul(ROYALTY_PERCENT).div(100)
+      );
     });
 
     it("2.13. Should mint successfully when user pays cash test token", async () => {
@@ -246,11 +255,19 @@ describe("ERC721", () => {
         users[0].address
       );
       expect(await erc721.typeOf(currentTokenId)).to.be.equal(TokenType.Normal);
-      const yearPeriod = await erc721.yearPeriodOf(currentTokenId);
+      const yearPeriod = await erc721.expirationOf(currentTokenId);
       expect(await erc721.expiredDateOf(currentTokenId)).to.be.equal(
         currentBlockTimestamp.add(yearPeriod.mul(YEAR_TO_SECONDS))
       );
       expect(await erc721.tokenIdOf(signature)).to.be.equal(currentTokenId);
+      const [royaltyReceiver, royaltyFraction] = await erc721.royaltyInfo(
+        currentTokenId,
+        params.price
+      );
+      expect(royaltyReceiver).to.be.equal(artist.address);
+      expect(royaltyFraction).to.be.equal(
+        params.price.mul(ROYALTY_PERCENT).div(100)
+      );
     });
   });
 
@@ -518,7 +535,7 @@ describe("ERC721", () => {
           [-1, 1]
         );
       const currentBlockTimestamp = await blockTimestamp();
-      const yearPeriod = await erc721.yearPeriodOf(tokenId);
+      const yearPeriod = await erc721.expirationOf(tokenId);
       expect(await erc721.expiredDateOf(tokenId)).to.be.equal(
         currentBlockTimestamp.add(yearPeriod.mul(YEAR_TO_SECONDS))
       );
@@ -588,7 +605,7 @@ describe("ERC721", () => {
           [-1, 1]
         )
         .changeEtherBalances(
-          [users[0].address, users[1].address, government.address],
+          [users[0].address, users[1].address, artist.address],
           [price.sub(royaltyFraction), price.mul(-1), royaltyFraction]
         );
     });
@@ -607,7 +624,7 @@ describe("ERC721", () => {
         )
         .changeTokenBalances(
           cashTestToken,
-          [users[0].address, users[1].address, government.address],
+          [users[0].address, users[1].address, artist.address],
           [tokenPrice.sub(royaltyFraction), tokenPrice.mul(-1), royaltyFraction]
         );
     });
