@@ -362,7 +362,7 @@ contract ERC721 is
 	function transfer(address _to, uint256 _tokenId) external {
 		require(_msgSender() != _to, "Transfer to yourself");
 		require(_exists(_tokenId), "Nonexistent token.");
-		require(typeOf[_tokenId] == TokenType.Normal, "Token is deactive");
+		require(typeOf[_tokenId] == TokenType.Normal, "Can not transfer token");
 		safeTransferFrom(_msgSender(), _to, _tokenId);
 	}
 
@@ -417,7 +417,12 @@ contract ERC721 is
 	function donate(uint256 _tokenId, address _to) external {
 		require(_exists(_tokenId), "Nonexistent token");
 		require(_msgSender() == ownerOf(_tokenId), "Not token owner");
-		require(typeOf[_tokenId] == TokenType.Furusato, "Not Furusato token");
+		require(
+			typeOf[_tokenId] == TokenType.Furusato ||
+				typeOf[_tokenId] == TokenType.Donated,
+			"Can not donate token"
+		);
+		typeOf[_tokenId] = TokenType.Donated;
 		safeTransferFrom(_msgSender(), _to, _tokenId);
 		emit Donated(_msgSender(), _to, _tokenId);
 	}

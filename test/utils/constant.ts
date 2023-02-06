@@ -3,6 +3,10 @@ import { AddressZero, MaxUint256 } from "@ethersproject/constants";
 export enum TokenType {
   Normal,
   Furusato,
+  Deactive,
+  JCredit,
+  Donated,
+  Expired,
 }
 
 export const ZERO_ADDRESS = AddressZero;

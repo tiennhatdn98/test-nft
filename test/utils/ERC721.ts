@@ -80,9 +80,29 @@ const mintToken = async (
   }
 };
 
+const setTokenType = async (
+  contract: Contract,
+  tokenId: BigNumber,
+  type: TokenType,
+  verifier: SignerWithAddress
+): Promise<void> => {
+  try {
+    const signature = await getSignatureSetType(
+      contract,
+      tokenId,
+      type,
+      verifier
+    );
+    await contract.setType(tokenId, type, signature);
+  } catch (error: any) {
+    throw Error(error);
+  }
+};
+
 export {
   getSignatureMint,
   getSignatureSetTokenURI,
   getSignatureSetType,
   mintToken,
+  setTokenType,
 };

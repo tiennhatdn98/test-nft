@@ -10,6 +10,7 @@ import {
   getSignatureSetTokenURI,
   getSignatureSetType,
   mintToken,
+  setTokenType,
 } from "./utils/ERC721";
 import {
   ZERO_ADDRESS,
@@ -492,7 +493,7 @@ describe("ERC721", () => {
       ).to.be.revertedWith("Nonexistent token.");
     });
 
-    it("7.4. Should be fail when type of token is not normal", async () => {
+    it('7.4. Should be fail when type of token is not "Normal"', async () => {
       const newType = TokenType.Furusato;
       const signature = await getSignatureSetType(
         erc721,
@@ -503,7 +504,7 @@ describe("ERC721", () => {
       await erc721.setType(tokenId, newType, signature);
       await expect(
         erc721.connect(users[0]).transfer(users[1].address, tokenId)
-      ).to.be.revertedWith("Token is deactive");
+      ).to.be.revertedWith("Can not transfer token");
     });
 
     it("7.5. Should be fail when token is not owned by sender", async () => {
@@ -632,24 +633,19 @@ describe("ERC721", () => {
       ).to.be.revertedWith("Not token owner");
     });
 
-    it("9.3. Should be fail when type of token is not Furusato", async () => {
+    it('9.3. Should be fail when type of token is not "Furusato" or "Donated"', async () => {
       await expect(
         erc721.connect(users[0]).donate(tokenId, users[1].address)
-      ).to.be.revertedWith("Not Furusato token");
+      ).to.be.revertedWith("Can not donate token");
     });
 
     it("9.4. Should donate successfully", async () => {
       // Set type of token into Furusato
-      const signature = await getSignatureSetType(
-        erc721,
-        tokenId,
-        TokenType.Furusato,
-        verifier
-      );
-      await erc721.setType(tokenId, TokenType.Furusato, signature);
+      await setTokenType(erc721, tokenId, TokenType.Furusato, verifier);
       await expect(erc721.connect(users[0]).donate(tokenId, users[1].address))
         .to.emit(erc721, "Donated")
         .withArgs(users[0].address, users[1].address, tokenId);
+      expect(await erc721.typeOf(tokenId)).to.be.equal(TokenType.Donated);
       expect(await erc721.ownerOf(tokenId)).to.be.equal(users[1].address);
     });
   });

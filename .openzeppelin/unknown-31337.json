@@ -151,11 +151,6 @@
       "kind": "transparent"
     },
     {
-      "address": "0x9d4454B023096f34B160D6B654540c56A1F81688",
-      "txHash": "0xb7c0de7fcfa8e4a15378943948b480a4e6d5c59c63cd970854b765e6e58c188d",
-      "kind": "transparent"
-    },
-    {
       "address": "0x4c5859f0F772848b2D91F1D83E2Fe57935348029",
       "txHash": "0x28767b297d73f8c2d9fc372c279a837add09875df6fb7ae5fe17656768d4c3db",
       "kind": "transparent"
@@ -453,11 +448,6 @@
     {
       "address": "0x2f8D338360D095a72680A943A22fE6a0d398a0B4",
       "txHash": "0x64a359aa56c1d24e0484ac13aa161238ab830ddc8126f34a18075e14ef007ed5",
-      "kind": "transparent"
-    },
-    {
-      "address": "0x998abeb3E57409262aE5b751f60747921B33613E",
-      "txHash": "0x32e5dcd9983d336401dd1f1a18a6776460adb8b0beecae5fc4f4bec5fbd5080b",
       "kind": "transparent"
     },
     {
@@ -1231,16 +1221,6 @@
       "kind": "transparent"
     },
     {
-      "address": "0x09635F643e140090A9A8Dcd712eD6285858ceBef",
-      "txHash": "0x7bec95c7c7a8406c34f57b0c8f8221ff735a9e9c31b6b2d0792ea823712a8983",
-      "kind": "transparent"
-    },
-    {
-      "address": "0x9E545E3C0baAB3E08CdfD552C960A1050f373042",
-      "txHash": "0x89917f6e4b28217496a49b397443201974b7c63db0650dd14da696650428d77e",
-      "kind": "transparent"
-    },
-    {
       "address": "0x1613beB3B2C4f22Ee086B2b38C1476A3cE7f78E8",
       "txHash": "0x5371e47ce4bde5715bb5a69eabd1d9917cdc82c9ee01d3acc1441d5c96fa7e7d",
       "kind": "transparent"
@@ -1363,16 +1343,6 @@
     {
       "address": "0xdB012DD3E3345e2f8D23c0F3cbCb2D94f430Be8C",
       "txHash": "0x2ec930ee39eb595d038923cdeb56abf56e91365498d1f576e83082bd45d096f2",
-      "kind": "transparent"
-    },
-    {
-      "address": "0x9A676e781A523b5d0C0e43731313A708CB607508",
-      "txHash": "0x2909c3d24cf2ab3edeabfa9a814a78416bae85a561a400dd529f50250c0ae0c2",
-      "kind": "transparent"
-    },
-    {
-      "address": "0xc6e7DF5E7b4f2A278906862b61205850344D4e7d",
-      "txHash": "0x55a614de938554ec95fbea10fa44a35ae3792b5fab6cce549e6765250921a330",
       "kind": "transparent"
     },
     {
@@ -1661,11 +1631,6 @@
       "kind": "transparent"
     },
     {
-      "address": "0x5f3f1dBD7B74C6B46e8c44f98792A1dAf8d69154",
-      "txHash": "0x0659c25e57302b35ea4873bec50262b21367842a3b149d1f5bae042915d01d80",
-      "kind": "transparent"
-    },
-    {
       "address": "0xc351628EB244ec633d5f21fBD6621e1a683B1181",
       "txHash": "0x3eaeb841124cd8c85a6f820aa6ec474a554e5ae83348965158fb9fa3a25bc38a",
       "kind": "transparent"
@@ -1693,6 +1658,41 @@
     {
       "address": "0x959922bE3CAee4b8Cd9a407cc3ac1C251C2007B1",
       "txHash": "0xdeb01c716d6467afc4085e7cb91985fac88b94d210591ae72488f82c46ced23d",
+      "kind": "transparent"
+    },
+    {
+      "address": "0x09635F643e140090A9A8Dcd712eD6285858ceBef",
+      "txHash": "0x56a78e7c076f5c499f5da1548420e4cdfe9dc87a137e0d3f73359f2af9775e6e",
+      "kind": "transparent"
+    },
+    {
+      "address": "0x9E545E3C0baAB3E08CdfD552C960A1050f373042",
+      "txHash": "0x4a52c50af47cfd2cd5c99c74d34dd80d225c7a20d2388415f825b29ba21781ee",
+      "kind": "transparent"
+    },
+    {
+      "address": "0x998abeb3E57409262aE5b751f60747921B33613E",
+      "txHash": "0x59e5a2f84e4d2366e6901f12bd758fbe359724716248477ef389319301d15915",
+      "kind": "transparent"
+    },
+    {
+      "address": "0x9d4454B023096f34B160D6B654540c56A1F81688",
+      "txHash": "0x4a8f24ce7cecd2e84aa80adb0799c75dc5138d76ae16536ef538e9a88e1935c3",
+      "kind": "transparent"
+    },
+    {
+      "address": "0x5f3f1dBD7B74C6B46e8c44f98792A1dAf8d69154",
+      "txHash": "0x892c19ff54bc80312669f07f1dbadfd6c202a6cf67ef448d99787774eba4c22d",
+      "kind": "transparent"
+    },
+    {
+      "address": "0x9A676e781A523b5d0C0e43731313A708CB607508",
+      "txHash": "0xafb2a0001d368adb82ab00d66c67757792392ffddfc932e7a3ec67ce5d38157a",
+      "kind": "transparent"
+    },
+    {
+      "address": "0xc6e7DF5E7b4f2A278906862b61205850344D4e7d",
+      "txHash": "0x172741f3de56a62590e6d6b370ff16cba1395cd62f55548e44e29939d77425db",
       "kind": "transparent"
     },
     {
@@ -1972,9 +1972,9 @@
     }
   ],
   "impls": {
-    "468aa5d289e4a0eb55e3365f361ebb3a15d3595eba3c57267444eac5df393c6d": {
+    "c11d1d68f29c403e0a75247eaf4fa10dc00b48fca863f57e2b2fc93cc5e9e03c": {
       "address": "0x5FbDB2315678afecb367f032d93F642f64180aa3",
-      "txHash": "0x0d849b87b7d940f21f767786335e48c4217e5a3a2b25364751d7510639a95e80",
+      "txHash": "0x7d77ca44bcdf4666c812c06b3062a443ff76eb8d1d5d3eda2bb7abf3b55532da",
       "layout": {
         "solcVersion": "0.8.16",
         "storage": [
@@ -2191,7 +2191,7 @@
             "label": "typeOf",
             "offset": 0,
             "slot": "354",
-            "type": "t_mapping(t_uint256,t_enum(TokenType)7648)",
+            "type": "t_mapping(t_uint256,t_enum(TokenType)7680)",
             "contract": "ERC721",
             "src": "contracts/ERC721.sol:67"
           },
@@ -2199,7 +2199,7 @@
             "label": "_tokenPayments",
             "offset": 0,
             "slot": "355",
-            "type": "t_mapping(t_uint256,t_struct(TokenPayment)7645_storage)",
+            "type": "t_mapping(t_uint256,t_struct(TokenPayment)7673_storage)",
             "contract": "ERC721",
             "src": "contracts/ERC721.sol:72"
           },
@@ -2257,11 +2257,15 @@
             "label": "bytes",
             "numberOfBytes": "32"
           },
-          "t_enum(TokenType)7648": {
+          "t_enum(TokenType)7680": {
             "label": "enum TokenType",
             "members": [
               "Normal",
-              "Furusato"
+              "Furusato",
+              "Deactive",
+              "JCredit",
+              "Donated",
+              "Expired"
             ],
             "numberOfBytes": "1"
           },
@@ -2289,7 +2293,7 @@
             "label": "mapping(uint256 => address)",
             "numberOfBytes": "32"
           },
-          "t_mapping(t_uint256,t_enum(TokenType)7648)": {
+          "t_mapping(t_uint256,t_enum(TokenType)7680)": {
             "label": "mapping(uint256 => enum TokenType)",
             "numberOfBytes": "32"
           },
@@ -2301,7 +2305,7 @@
             "label": "mapping(uint256 => struct ERC2981Upgradeable.RoyaltyInfo)",
             "numberOfBytes": "32"
           },
-          "t_mapping(t_uint256,t_struct(TokenPayment)7645_storage)": {
+          "t_mapping(t_uint256,t_struct(TokenPayment)7673_storage)": {
             "label": "mapping(uint256 => struct TokenPayment)",
             "numberOfBytes": "32"
           },
@@ -2343,7 +2347,7 @@
             ],
             "numberOfBytes": "32"
           },
-          "t_struct(TokenPayment)7645_storage": {
+          "t_struct(TokenPayment)7673_storage": {
             "label": "struct TokenPayment",
             "members": [
               {

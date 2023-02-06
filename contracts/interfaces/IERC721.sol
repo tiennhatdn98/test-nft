@@ -50,5 +50,9 @@ struct TokenPayment {
 
 enum TokenType {
 	Normal,
-	Furusato
+	Furusato,
+	Deactive,
+	JCredit,
+	Donated,
+	Expired
 }
